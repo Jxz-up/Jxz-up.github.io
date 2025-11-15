@@ -2,10 +2,109 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Primera Página</title>
+    <title>Comunicación con Google Sheets</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .box { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+        input { margin-bottom: 10px; padding: 8px; width: 150px; }
+        button { padding: 10px 15px; cursor: pointer; }
+    </style>
 </head>
 <body>
-    <p style="font-size: 36px;"><b>¡Hola Mundo!</b></p>
+
+    <h1>Panel de Control del ESP32</h1>
+    
+    <div class="box">
+        <h2>Leer Datos de la Fila 3</h2>
+        <p>Última lectura: <span id="output-timestamp">N/A</span></p>
+        <p>Valor Va: <strong id="output-va">N/A</strong></p>
+        <p>Valor Vb: <strong id="output-vb">N/A</strong></p>
+        <p>Valor Vc: <strong id="output-vc">N/A</strong></p>
+        <button onclick="leerDatos()">Actualizar Lectura</button>
+    </div>
+
+    <div class="box">
+        <h2>Publicar Datos en la Fila 3</h2>
+        <input type="number" id="input-va" placeholder="Nuevo Va">
+        <input type="number" id="input-vb" placeholder="Nuevo Vb">
+        <input type="number" id="input-vc" placeholder="Nuevo Vc">
+        <button onclick="publicarDatos()">Enviar a Google Sheets</button>
+    </div>
+
+    <script>
+        // ¡IMPORTANTE! Reemplaza con la URL de tu Aplicación Web de Apps Script
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzjG3YRgiP-maDyI6mZDly4nIkvx4Z2U-oVJ8L5qDfJsmAPitR2m1huItLQoiQjEgYJ/exec'; 
+        
+        // Función para LEER datos (Solicitud GET)
+        async function leerDatos() {
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'GET' });
+                const data = await response.json();
+
+                if (data.error) {
+                    alert('Error al leer: ' + data.error);
+                    return;
+                }
+
+                // Formatear la fecha para que sea legible
+                const timestamp = new Date(data.Timestamp).toLocaleString();
+
+                // Mostrar los datos en la página
+                document.getElementById('output-timestamp').textContent = timestamp;
+                document.getElementById('output-va').textContent = data.Va;
+                document.getElementById('output-vb').textContent = data.Vb;
+                document.getElementById('output-vc').textContent = data.Vc;
+
+                alert('Datos cargados exitosamente.');
+
+            } catch (error) {
+                alert('Fallo en la conexión: ' + error);
+                console.error('Fetch error:', error);
+            }
+        }
+
+        // Función para PUBLICAR datos (Solicitud POST)
+        async function publicarDatos() {
+            const newVa = document.getElementById('input-va').value;
+            const newVb = document.getElementById('input-vb').value;
+            const newVc = document.getElementById('input-vc').value;
+            
+            if (!newVa || !newVb || !newVc) {
+                alert('Por favor, ingresa todos los valores.');
+                return;
+            }
+
+            const payload = {
+                Va: parseFloat(newVa),
+                Vb: parseFloat(newVb),
+                Vc: parseFloat(newVc)
+            };
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Necesario para evitar problemas de CORS en el cliente
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                // Como usamos 'no-cors', no podemos leer la respuesta real de éxito/error del servidor.
+                // Sin embargo, una respuesta 200 (éxito) generalmente implica que el script se ejecutó.
+                // Es mejor confiar en la lógica del Script de Google Apps para confirmar la escritura.
+                alert('Datos enviados. Verifica tu Google Sheet para la confirmación.');
+                
+                // Limpiar los campos después de enviar
+                document.getElementById('input-va').value = '';
+                document.getElementById('input-vb').value = '';
+                document.getElementById('input-vc').value = '';
+
+            } catch (error) {
+                alert('Fallo al enviar los datos: ' + error);
+                console.error('Fetch error:', error);
+            }
+        }
+    </script>
 </body>
 </html>
