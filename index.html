@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <!-- CRUCIAL: Meta tag para asegurar que la página se adapte al ancho del dispositivo -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control IoT Responsivo</title>
+    <title>Panel de Control IoT (Solo Lectura)</title>
     <!-- Incluimos Tailwind CSS para el diseño responsivo -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -12,8 +12,8 @@
             theme: {
                 extend: {
                     colors: {
+                        // Solo conservamos el azul para el botón de lectura
                         'primary-blue': '#1e40af',
-                        'secondary-green': '#059669',
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
@@ -32,20 +32,20 @@
 </head>
 <body class="p-4 md:p-8 min-h-screen">
 
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-extrabold text-gray-900 mb-6 text-center">Panel de Control IoT (ESP32)</h1>
+    <div class="max-w-xl mx-auto">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-8 text-center">Visualizador de Datos (Fila 3)</h1>
         
         <!-- Contenedor de Lectura (GET) -->
         <div id="read-box" class="bg-white shadow-xl rounded-xl p-6 mb-8 border-t-4 border-primary-blue transition-all duration-300 hover:shadow-2xl">
             <h2 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
                 <svg class="w-6 h-6 mr-2 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 4m0 5h7m7 7v5h-.583m-15.356-2A8.001 8.001 0 0019.418 20m0-5h-7"></path></svg>
-                Lectura de Datos (Fila 3)
+                Últimos Valores Registrados
             </h2>
             
             <!-- Grid responsivo para mostrar los datos -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div class="p-3 bg-gray-50 rounded-lg">
-                    <p class="text-sm text-gray-500">Última lectura:</p>
+                <div class="p-3 bg-gray-50 rounded-lg sm:col-span-2">
+                    <p class="text-sm text-gray-500">Timestamp de la lectura:</p>
                     <p class="text-base font-medium" id="output-timestamp">N/A</p>
                 </div>
                 <div class="p-3 bg-gray-50 rounded-lg">
@@ -54,7 +54,7 @@
                 </div>
                 <div class="p-3 bg-gray-50 rounded-lg">
                     <p class="text-sm text-gray-500">Valor Vb:</p>
-                    <p class="text-xl font-bold text-secondary-green" id="output-vb">N/A</p>
+                    <p class="text-xl font-bold text-gray-600" id="output-vb">N/A</p>
                 </div>
                 <div class="p-3 bg-gray-50 rounded-lg">
                     <p class="text-sm text-gray-500">Valor Vc:</p>
@@ -62,29 +62,12 @@
                 </div>
             </div>
 
-            <button onclick="leerDatos()" class="w-full bg-primary-blue hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 shadow-md">
-                Actualizar Lectura
+            <button onclick="leerDatos()" class="w-full bg-primary-blue hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 shadow-lg">
+                Actualizar Lectura de Google Sheets
             </button>
         </div>
 
-        <!-- Contenedor de Publicación (POST) -->
-        <div id="write-box" class="bg-white shadow-xl rounded-xl p-6 border-t-4 border-secondary-green transition-all duration-300 hover:shadow-2xl">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
-                <svg class="w-6 h-6 mr-2 text-secondary-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                Publicar Nuevos Datos (Envío)
-            </h2>
-
-            <!-- Flexbox responsivo para los inputs -->
-            <div class="flex flex-col sm:flex-row gap-3 mb-6">
-                <input type="number" id="input-va" placeholder="Nuevo Va" class="flex-1 border border-gray-300 p-3 rounded-lg focus:ring-secondary-green focus:border-secondary-green transition-shadow" aria-label="Nuevo Valor Va">
-                <input type="number" id="input-vb" placeholder="Nuevo Vb" class="flex-1 border border-gray-300 p-3 rounded-lg focus:ring-secondary-green focus:border-secondary-green transition-shadow" aria-label="Nuevo Valor Vb">
-                <input type="number" id="input-vc" placeholder="Nuevo Vc" class="flex-1 border border-gray-300 p-3 rounded-lg focus:ring-secondary-green focus:border-secondary-green transition-shadow" aria-label="Nuevo Valor Vc">
-            </div>
-
-            <button onclick="publicarDatos()" class="w-full bg-secondary-green hover:bg-green-800 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 shadow-md">
-                Enviar a Google Sheets
-            </button>
-        </div>
+        <!-- Se ha eliminado por completo el Contenedor de Publicación (POST) -->
     </div>
 
     <!-- Mensaje de Notificación (Reemplaza alert()) -->
@@ -96,6 +79,7 @@
             const container = document.getElementById('message-container');
             const messageDiv = document.createElement('div');
             
+            // Usamos un color de fondo fijo para el éxito (verde) y el error (rojo)
             messageDiv.className = `p-4 rounded-lg shadow-lg text-white mb-2 transition-opacity duration-500 ${isError ? 'bg-red-600' : 'bg-green-600'}`;
             messageDiv.textContent = text;
             container.appendChild(messageDiv);
@@ -109,7 +93,7 @@
         }
 
         // ¡IMPORTANTE! Reemplaza con la URL de tu Aplicación Web de Apps Script
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzjG3YRgiP-maDyI6mZDly4nIkvx4Z2U-oVJ8L5qDfJsmAPitR2m1huItLQoiQjEgYJ/exec'; 
+        const SCRIPT_URL = 'TU_APPS_SCRIPT_URL_AQUI'; 
         
         // Función para LEER datos (Solicitud GET)
         async function leerDatos() {
@@ -138,56 +122,8 @@
                 console.error('Fetch error:', error);
             }
         }
-
-        // Función para PUBLICAR datos (Solicitud POST)
-        async function publicarDatos() {
-            const newVa = document.getElementById('input-va').value;
-            const newVb = document.getElementById('input-vb').value;
-            const newVc = document.getElementById('input-vc').value;
-            
-            if (!newVa || !newVb || !newVc) {
-                showMessage('Por favor, ingresa todos los valores.', true);
-                return;
-            }
-
-            const payload = {
-                Va: parseFloat(newVa),
-                Vb: parseFloat(newVb),
-                Vc: parseFloat(newVc)
-            };
-
-            try {
-                // Deshabilitar botón mientras se envía
-                const button = event.target;
-                button.disabled = true;
-                button.textContent = 'Enviando...';
-                
-                // Fetch request
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', 
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                showMessage('Datos enviados. ¡Verifica tu Google Sheet!');
-                
-                // Limpiar los campos después de enviar
-                document.getElementById('input-va').value = '';
-                document.getElementById('input-vb').value = '';
-                document.getElementById('input-vc').value = '';
-
-            } catch (error) {
-                showMessage('Fallo al enviar los datos: ' + error, true);
-                console.error('Fetch error:', error);
-            } finally {
-                // Habilitar botón de nuevo
-                button.disabled = false;
-                button.textContent = 'Enviar a Google Sheets';
-            }
-        }
+        
+        // La función publicarDatos() ha sido eliminada.
     </script>
 </body>
 </html>
