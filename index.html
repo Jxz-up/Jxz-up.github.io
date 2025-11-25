@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizador de Datos</title>
-    <!-- Incluimos Tailwind CSS para un diseño responsive y moderno -->
+    <title>Visualizador de Datos PZEM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Un pequeño ajuste para que los fieldsets ocultos no ocupen espacio */
-        .hidden {
-            display: none;
-        }
+        .hidden { display: none; }
+        /* Animación suave para los datos */
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -19,417 +18,195 @@
         <div class="bg-white rounded-xl shadow-lg p-6 sm:p-8">
             
             <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
-                Visor de Datos
+                Monitor de Energía (PZEM)
             </h1>
 
-            <!-- Sección de Checkboxes para seleccionar qué ver -->
             <fieldset class="mb-6 border border-gray-300 p-4 rounded-lg">
                 <legend class="text-xl font-semibold text-gray-700 px-2">Seleccionar Parámetros</legend>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
                     
-                    <!-- Checkbox 1 -->
-                    <div class="flex items-center p-2 rounded-lg hover:bg-gray-50">
-                        <input id="chk1" type="checkbox" data-cols="Va,Vb,Vc" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="chk1" class="ml-2 block text-sm font-medium text-gray-900">1. Va- Vb - Vc</label>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk1" type="checkbox" data-cols="Va,Vb,Vc" class="h-4 w-4 text-blue-600">
+                        <label for="chk1" class="ml-2">1. Voltajes Fase (Va, Vb, Vc)</label>
                     </div>
-
-                    <!-- Checkbox 2 -->
-                    <div class="flex items-center p-2 rounded-lg hover:bg-gray-50">
-                        <input id="chk2" type="checkbox" data-cols="Vab,Vbc,Vca" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="chk2" class="ml-2 block text-sm font-medium text-gray-900">2. Vab- Vbc - Vca</label>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk2" type="checkbox" data-cols="Vab,Vbc,Vca" class="h-4 w-4 text-blue-600">
+                        <label for="chk2" class="ml-2">2. Voltajes Línea</label>
                     </div>
-
-                    <!-- Checkbox 3 -->
-                    <div class="flex items-center p-2 rounded-lg hover:bg-gray-50">
-                        <input id="chk3" type="checkbox" data-cols="Ia,Ib,Ic" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="chk3" class="ml-2 block text-sm font-medium text-gray-900">3. Ia- Ib - Ic</label>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk3" type="checkbox" data-cols="Ia,Ib,Ic" class="h-4 w-4 text-blue-600">
+                        <label for="chk3" class="ml-2">3. Corrientes (Ia, Ib, Ic)</label>
                     </div>
-
-                    <!-- Checkbox 4 -->
-                    <div class="flex items-center p-2 rounded-lg hover:bg-gray-50">
-                        <input id="chk4" type="checkbox" data-cols="Fa,Fb,Fc" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="chk4" class="ml-2 block text-sm font-medium text-gray-900">4. Fa- Fb - Fc</label>
+                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk4" type="checkbox" data-cols="Fa,Fb,Fc" class="h-4 w-4 text-blue-600">
+                        <label for="chk4" class="ml-2">4. Frecuencias (Hz)</label>
                     </div>
-
-                    <!-- Checkbox 5 -->
-                    <div class="flex items-center p-2 rounded-lg hover:bg-gray-50">
-                        <input id="chk5" type="checkbox" data-cols="FPa,FPb,FPc" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="chk5" class="ml-2 block text-sm font-medium text-gray-900">5. FPa- FPb - FPc</label>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk5" type="checkbox" data-cols="FPa,FPb,FPc" class="h-4 w-4 text-blue-600">
+                        <label for="chk5" class="ml-2">5. Factor de Potencia</label>
                     </div>
-
-                    <!-- Checkbox 6 -->
-                    <div class="flex items-center p-2 rounded-lg hover:bg-gray-50">
-                        <input id="chk6" type="checkbox" data-cols="Pa,Pb,Pc" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="chk6" class="ml-2 block text-sm font-medium text-gray-900">6. Pa- Pb - Pc</label>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk6" type="checkbox" data-cols="Pa,Pb,Pc" class="h-4 w-4 text-blue-600">
+                        <label for="chk6" class="ml-2">6. Potencia Activa (W)</label>
                     </div>
-
-                    <!-- Checkbox 7 -->
-                    <div class="flex items-center p-2 rounded-lg hover:bg-gray-50">
-                        <input id="chk7" type="checkbox" data-cols="Qa,Qb,Qc" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="chk7" class="ml-2 block text-sm font-medium text-gray-900">7. Qa- Qb - Qc</label>
+                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk7" type="checkbox" data-cols="Qa,Qb,Qc" class="h-4 w-4 text-blue-600">
+                        <label for="chk7" class="ml-2">7. Potencia Reactiva (VAR)</label>
                     </div>
-
-                    <!-- Checkbox 8 -->
-                    <div class="flex items-center p-2 rounded-lg hover:bg-gray-50">
-                        <input id="chk8" type="checkbox" data-cols="Sa,Sb,Sc" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="chk8" class="ml-2 block text-sm font-medium text-gray-900">8. Sa- Sb - Sc</label>
+                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk8" type="checkbox" data-cols="Sa,Sb,Sc" class="h-4 w-4 text-blue-600">
+                        <label for="chk8" class="ml-2">8. Potencia Aparente (VA)</label>
                     </div>
-
-                    <!-- Checkbox 9 -->
-                    <div class="flex items-center p-2 rounded-lg hover:bg-gray-50">
-                        <input id="chk9" type="checkbox" data-cols="Pt,Qt,St" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="chk9" class="ml-2 block text-sm font-medium text-gray-900">9. Pt- Qt - St</label>
+                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk9" type="checkbox" data-cols="Pt,Qt,St" class="h-4 w-4 text-blue-600">
+                        <label for="chk9" class="ml-2">9. Totales (Pt, Qt, St)</label>
                     </div>
-
-                    <!-- Checkbox 10 -->
-                    <div class="flex items-center p-2 rounded-lg hover:bg-gray-50">
-                        <input id="chk10" type="checkbox" data-cols="E_Pa,E_Pb,E_Pc" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="chk10" class="ml-2 block text-sm font-medium text-gray-900">10. E_Pa- E_Pb - E_Pc</label>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk13" type="checkbox" data-cols="E_Pt,E_Qt,E_St" class="h-4 w-4 text-blue-600">
+                        <label for="chk13" class="ml-2">10. Energía Total Acumulada</label>
                     </div>
-
-                    <!-- Checkbox 11 -->
-                    <div class="flex items-center p-2 rounded-lg hover:bg-gray-50">
-                        <input id="chk11" type="checkbox" data-cols="E_Qa,E_Qb,E_Qc" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="chk11" class="ml-2 block text-sm font-medium text-gray-900">11. E_Qa- E_Qb - E_Qc</label>
-                    </div>
-
-                    <!-- Checkbox 12 -->
-                    <div class="flex items-center p-2 rounded-lg hover:bg-gray-50">
-                        <input id="chk12" type="checkbox" data-cols="E_Sa,E_Sb,E_Sc" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="chk12" class="ml-2 block text-sm font-medium text-gray-900">12. E_Sa- E_Sb - E_Sc</label>
-                    </div>
-
-                    <!-- Checkbox 13 -->
-                    <div class="flex items-center p-2 rounded-lg hover:bg-gray-50">
-                        <input id="chk13" type="checkbox" data-cols="E_Pt,E_Qt,E_St" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="chk13" class="ml-2 block text-sm font-medium text-gray-900">13. E_Pt- E_Qt - E_St</label>
-                    </div>
-
                 </div>
             </fieldset>
 
-            <!-- Div para mostrar mensajes de estado (cargando, error) -->
             <div id="status-message" class="text-center p-4 my-4 text-gray-600 rounded-lg bg-gray-50 hidden"></div>
 
-            <!-- Contenedor para los grupos de datos (Fieldsets) -->
             <div id="data-container" class="space-y-4">
+                <fieldset id="fs1" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">1. Voltajes Fase</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Va</small><br><strong id="data-Va" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Vb</small><br><strong id="data-Vb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Vc</small><br><strong id="data-Vc" class="text-xl">...</strong></div></div>
+                </fieldset>
+
+                <fieldset id="fs2" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">2. Voltajes Línea</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Vab</small><br><strong id="data-Vab" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Vbc</small><br><strong id="data-Vbc" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Vca</small><br><strong id="data-Vca" class="text-xl">...</strong></div></div>
+                </fieldset>
+
+                <fieldset id="fs3" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">3. Corrientes</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Ia</small><br><strong id="data-Ia" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Ib</small><br><strong id="data-Ib" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Ic</small><br><strong id="data-Ic" class="text-xl">...</strong></div></div>
+                </fieldset>
+
+                <fieldset id="fs4" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">4. Frecuencias</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Fa</small><br><strong id="data-Fa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Fb</small><br><strong id="data-Fb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Fc</small><br><strong id="data-Fc" class="text-xl">...</strong></div></div>
+                </fieldset>
+
+                <fieldset id="fs5" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">5. Factor de Potencia</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>FPa</small><br><strong id="data-FPa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>FPb</small><br><strong id="data-FPb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>FPc</small><br><strong id="data-FPc" class="text-xl">...</strong></div></div>
+                </fieldset>
+
+                <fieldset id="fs6" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">6. Potencia Activa</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Pa</small><br><strong id="data-Pa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Pb</small><br><strong id="data-Pb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Pc</small><br><strong id="data-Pc" class="text-xl">...</strong></div></div>
+                </fieldset>
                 
-                <!-- 1. Va- Vb - Vc -->
-                <fieldset id="fs1" class="hidden border border-gray-300 p-4 rounded-lg shadow-sm">
-                    <legend class="text-lg font-semibold text-blue-700 px-2">1. Va- Vb - Vc</legend>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Va</span><span id="data-1-1" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Vb</span><span id="data-1-2" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Vc</span><span id="data-1-3" class="text-xl font-bold text-gray-900">...</span></div>
-                    </div>
+                 <fieldset id="fs7" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">7. Potencia Reactiva</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Qa</small><br><strong id="data-Qa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Qb</small><br><strong id="data-Qb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Qc</small><br><strong id="data-Qc" class="text-xl">...</strong></div></div>
                 </fieldset>
 
-                <!-- 2. Vab- Vbc - Vca -->
-                <fieldset id="fs2" class="hidden border border-gray-300 p-4 rounded-lg shadow-sm">
-                    <legend class="text-lg font-semibold text-blue-700 px-2">2. Vab- Vbc - Vca</legend>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Vab</span><span id="data-2-1" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Vbc</span><span id="data-2-2" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Vca</span><span id="data-2-3" class="text-xl font-bold text-gray-900">...</span></div>
-                    </div>
+                 <fieldset id="fs8" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">8. Potencia Aparente</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Sa</small><br><strong id="data-Sa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Sb</small><br><strong id="data-Sb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Sc</small><br><strong id="data-Sc" class="text-xl">...</strong></div></div>
                 </fieldset>
 
-                <!-- 3. Ia- Ib - Ic -->
-                <fieldset id="fs3" class="hidden border border-gray-300 p-4 rounded-lg shadow-sm">
-                    <legend class="text-lg font-semibold text-blue-700 px-2">3. Ia- Ib - Ic</legend>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Ia</span><span id="data-3-1" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Ib</span><span id="data-3-2" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Ic</span><span id="data-3-3" class="text-xl font-bold text-gray-900">...</span></div>
-                    </div>
+                <fieldset id="fs9" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">9. Totales</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Pt Total</small><br><strong id="data-Pt" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Qt Total</small><br><strong id="data-Qt" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>St Total</small><br><strong id="data-St" class="text-xl">...</strong></div></div>
                 </fieldset>
 
-                <!-- 4. Fa- Fb - Fc -->
-                <fieldset id="fs4" class="hidden border border-gray-300 p-4 rounded-lg shadow-sm">
-                    <legend class="text-lg font-semibold text-blue-700 px-2">4. Fa- Fb - Fc</legend>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Fa</span><span id="data-4-1" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Fb</span><span id="data-4-2" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Fc</span><span id="data-4-3" class="text-xl font-bold text-gray-900">...</span></div>
-                    </div>
+                <fieldset id="fs13" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">10. Energías Acumuladas</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>E. Activa</small><br><strong id="data-E_Pt" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>E. Reactiva</small><br><strong id="data-E_Qt" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>E. Aparente</small><br><strong id="data-E_St" class="text-xl">...</strong></div></div>
                 </fieldset>
-
-                <!-- 5. FPa- FPb - FPc -->
-                <fieldset id="fs5" class="hidden border border-gray-300 p-4 rounded-lg shadow-sm">
-                    <legend class="text-lg font-semibold text-blue-700 px-2">5. FPa- FPb - FPc</legend>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">FPa</span><span id="data-5-1" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">FPb</span><span id="data-5-2" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">FPc</span><span id="data-5-3" class="text-xl font-bold text-gray-900">...</span></div>
-                    </div>
-                </fieldset>
-
-                <!-- 6. Pa- Pb - Pc -->
-                <fieldset id="fs6" class="hidden border border-gray-300 p-4 rounded-lg shadow-sm">
-                    <legend class="text-lg font-semibold text-blue-700 px-2">6. Pa- Pb - Pc</legend>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Pa</span><span id="data-6-1" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Pb</span><span id="data-6-2" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Pc</span><span id="data-6-3" class="text-xl font-bold text-gray-900">...</span></div>
-                    </div>
-                </fieldset>
-
-                <!-- 7. Qa- Qb - Qc -->
-                <fieldset id="fs7" class="hidden border border-gray-300 p-4 rounded-lg shadow-sm">
-                    <legend class="text-lg font-semibold text-blue-700 px-2">7. Qa- Qb - Qc</legend>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Qa</span><span id="data-7-1" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Qb</span><span id="data-7-2" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Qc</span><span id="data-7-3" class="text-xl font-bold text-gray-900">...</span></div>
-                    </div>
-                </fieldset>
-
-                <!-- 8. Sa- Sb - Sc -->
-                <fieldset id="fs8" class="hidden border border-gray-300 p-4 rounded-lg shadow-sm">
-                    <legend class="text-lg font-semibold text-blue-700 px-2">8. Sa- Sb - Sc</legend>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Sa</span><span id="data-8-1" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Sb</span><span id="data-8-2" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Sc</span><span id="data-8-3" class="text-xl font-bold text-gray-900">...</span></div>
-                    </div>
-                </fieldset>
-
-                <!-- 9. Pt- Qt - St -->
-                <fieldset id="fs9" class="hidden border border-gray-300 p-4 rounded-lg shadow-sm">
-                    <legend class="text-lg font-semibold text-blue-700 px-2">9. Pt- Qt - St</legend>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Pt</span><span id="data-9-1" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">Qt</span><span id="data-9-2" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">St</span><span id="data-9-3" class="text-xl font-bold text-gray-900">...</span></div>
-                    </div>
-                </fieldset>
-
-                <!-- 10. E_Pa- E_Pb - E_Pc -->
-                <fieldset id="fs10" class="hidden border border-gray-300 p-4 rounded-lg shadow-sm">
-                    <legend class="text-lg font-semibold text-blue-700 px-2">10. E_Pa- E_Pb - E_Pc</legend>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">E_Pa</span><span id="data-10-1" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">E_Pb</span><span id="data-10-2" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">E_Pc</span><span id="data-10-3" class="text-xl font-bold text-gray-900">...</span></div>
-                    </div>
-                </fieldset>
-
-                <!-- 11. E_Qa- E_Qb - E_Qc -->
-                <fieldset id="fs11" class="hidden border border-gray-300 p-4 rounded-lg shadow-sm">
-                    <legend class="text-lg font-semibold text-blue-700 px-2">11. E_Qa- E_Qb - E_Qc</legend>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">E_Qa</span><span id="data-11-1" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">E_Qb</span><span id="data-11-2" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">E_Qc</span><span id="data-11-3" class="text-xl font-bold text-gray-900">...</span></div>
-                    </div>
-                </fieldset>
-
-                <!-- 12. E_Sa- E_Sb - E_Sc -->
-                <fieldset id="fs12" class="hidden border border-gray-300 p-4 rounded-lg shadow-sm">
-                    <legend class="text-lg font-semibold text-blue-700 px-2">12. E_Sa- E_Sb - E_Sc</legend>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">E_Sa</span><span id="data-12-1" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">E_Sb</span><span id="data-12-2" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">E_Sc</span><span id="data-12-3" class="text-xl font-bold text-gray-900">...</span></div>
-                    </div>
-                </fieldset>
-
-                <!-- 13. E_Pt- E_Qt - E_St -->
-                <fieldset id="fs13" class="hidden border border-gray-300 p-4 rounded-lg shadow-sm">
-                    <legend class="text-lg font-semibold text-blue-700 px-2">13. E_Pt- E_Qt - E_St</legend>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">E_Pt</span><span id="data-13-1" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">E_Qt</span><span id="data-13-2" class="text-xl font-bold text-gray-900">...</span></div>
-                        <div class="p-3 bg-gray-100 rounded-md shadow-inner"><span class="block text-sm font-medium text-gray-500">E_St</span><span id="data-13-3" class="text-xl font-bold text-gray-900">...</span></div>
-                    </div>
-                </fieldset>
-
             </div>
-
         </div>
     </div>
 
-    <!-- 
-      ¡IMPORTANTE! 
-      AQUÍ DEBES PEGAR LA URL DE TU SCRIPT DE GOOGLE APPS (WEB APP)
-      El atributo 'defer' asegura que el script se ejecute después de que el HTML se haya cargado.
-    -->
-    <!-- <script src="URL_DE_TU_SCRIPT.js" defer></script> -->
-    <!-- El script de Google se llama ahora desde el script de abajo, por lo que la línea anterior ya no es necesaria -->
-
-
-    <!-- Script para manejar la visibilidad Y LA CARGA DE DATOS -->
     <script>
         // --- CONFIGURACIÓN ---
-        // ¡¡¡Pega la URL de tu Web App de Google Apps Script aquí!!!
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxW8He3MZbMotNZVbhRA-JKO_UMif6jLHM2jmUh3DZyS3mSJEnbnPfIGUIJRbe42y01/exec'; 
-        
-        // Mapea los nombres de las columnas de la hoja de cálculo a los IDs de los <span> en el HTML
-        //<!-- Esta línea no se mostrará en la página -->
+        // Pega aquí la NUEVA URL que obtuviste al hacer Deploy > Web App
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyYOkB17jQtRIP17g-6x_2KD-LAeCV-dbqrZ9iNbB-AlSxSsaMZgffov_3Ye7AZvhuw/exec'; 
 
-        const dataIdMap = {
-            'Va': 'data-1-1', 'Vb': 'data-1-2', 'Vc': 'data-1-3',
-            'Vab': 'data-2-1', 'Vbc': 'data-2-2', 'Vca': 'data-2-3',
-            'Ia': 'data-3-1', 'Ib': 'data-3-2', 'Ic': 'data-3-3',
-            'Fa': 'data-4-1', 'Fb': 'data-4-2', 'Fc': 'data-4-3',
-            'FPa': 'data-5-1', 'FPb': 'data-5-2', 'FPc': 'data-5-3',
-            'Pa': 'data-6-1', 'Pb': 'data-6-2', 'Pc': 'data-6-3',
-            'Qa': 'data-7-1', 'Qb': 'data-7-2', 'Qc': 'data-7-3',
-            'Sa': 'data-8-1', 'Sb': 'data-8-2', 'Sc': 'data-8-3',
-            'Pt': 'data-9-1', 'Qt': 'data-9-2', 'St': 'data-9-3',
-            'E_Pa': 'data-10-1', 'E_Pb': 'data-10-2', 'E_Pc': 'data-10-3',
-            'E_Qa': 'data-11-1', 'E_Qb': 'data-11-2', 'E_Qc': 'data-11-3',
-            'E_Sa': 'data-12-1', 'E_Sb': 'data-12-2', 'E_Sc': 'data-12-3',
-            'E_Pt': 'data-13-1', 'E_Qt': 'data-13-2', 'E_St': 'data-13-3'
-        };
-
-        // --- LÓGICA PRINCIPAL ---
+        // --- LÓGICA ---
         document.addEventListener('DOMContentLoaded', function() {
+            // Checkboxes del 1 al 9 y el 13
+            const ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 13];
             
-            // Bucle para configurar los 13 checkboxes
-            for (let i = 1; i <= 13; i++) {
-                const checkbox = document.getElementById('chk' + i);
-                const fieldset = document.getElementById('fs' + i);
-
-                if (checkbox && fieldset) {
-                    checkbox.addEventListener('change', function() {
-                        // 1. Manejar la visibilidad (igual que antes)
-                        if (this.checked) {
-                            fieldset.classList.remove('hidden');
-                        } else {
-                            fieldset.classList.add('hidden');
-                        }
-                        
-                        // 2. Llamar a la función para actualizar los datos
-                        fetchAndUpdateData();
+            ids.forEach(id => {
+                const chk = document.getElementById('chk' + id);
+                const fs = document.getElementById('fs' + id);
+                if(chk && fs) {
+                    chk.addEventListener('change', () => {
+                        fs.classList.toggle('hidden', !chk.checked);
+                        fetchData();
                     });
                 }
-            }
+            });
+
+            // Refresco automático cada 5 segundos si hay algo seleccionado
+            setInterval(fetchData, 5000);
         });
 
-        /**
-         * Recopila todos los checkboxes activos, construye la URL de consulta
-         * y llama al script de Google.
-         */
-        async function fetchAndUpdateData() {
+        let isFetching = false;
+
+        async function fetchData() {
+            if (isFetching) return;
+
+            // Recopilar columnas solicitadas
+            let requestedCols = [];
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
+                requestedCols.push(...chk.dataset.cols.split(','));
+            });
+
             const statusDiv = document.getElementById('status-message');
             
-            if (GAS_WEB_APP_URL === 'https://script.google.com/macros/s/AKfycbxW8He3MZbMotNZVbhRA-JKO_UMif6jLHM2jmUh3DZyS3mSJEnbnPfIGUIJRbe42y01/exec') {
-                statusDiv.textContent = 'Error: Por favor, edita el archivo HTML y añade la URL de tu Google Apps Script.';
-                statusDiv.classList.remove('hidden', 'text-green-600');
-                statusDiv.classList.add('text-red-600', 'bg-red-100');
-                return;
-            }
-
-            let requestedCols = [];
-            
-            // Recopila todas las columnas de los checkboxes marcados
-            for (let i = 1; i <= 13; i++) {
-                const checkbox = document.getElementById('chk' + i);
-                if (checkbox && checkbox.checked) {
-                    // Obtiene las columnas del atributo 'data-cols' (ej: "Va,Vb,Vc")
-                    const cols = checkbox.dataset.cols.split(',');
-                    requestedCols.push(...cols);
-                }
-            }
-
-            // Si no hay nada seleccionado, oculta el mensaje y termina
             if (requestedCols.length === 0) {
                 statusDiv.classList.add('hidden');
-                statusDiv.textContent = '';
-                // Opcional: limpiar los datos
-                // clearAllDataSpans(); 
                 return;
             }
 
-            // Muestra mensaje de "Cargando..."
-            statusDiv.textContent = 'Consultando datos...';
-            statusDiv.classList.remove('hidden', 'text-red-600', 'bg-red-1CH');
-            statusDiv.classList.add('text-gray-600', 'bg-gray-50');
+            if(GAS_WEB_APP_URL.includes('AQUI_TU_NUEVA_URL')) {
+                statusDiv.textContent = "Error: Debes actualizar la variable GAS_WEB_APP_URL en el código HTML.";
+                statusDiv.classList.remove('hidden');
+                return;
+            }
 
-            // Crea la cadena de consulta única (ej: "Va,Vb,Vc,Ia,Ib,Ic")
-            const colsToQuery = [...new Set(requestedCols)].join(','); // Elimina duplicados
-            const fullUrl = `${GAS_WEB_APP_URL}?colsToQuery=${colsToQuery}`;
-
+            isFetching = true;
+            statusDiv.textContent = "Actualizando...";
+            statusDiv.classList.remove('hidden', 'text-red-600');
+            
             try {
-                // *** INICIO DE LA MODIFICACIÓN ***
-                // Añadimos opciones explícitas al fetch para manejar
-                // posibles redirecciones de Google Apps Script y problemas de CORS.
-                const response = await fetch(fullUrl, {
-                    method: 'GET',
-                    mode: 'cors',      // 'cors' es el modo por defecto, pero ser explícito ayuda
-                    redirect: 'follow' // Muy importante para las URLs de Google Apps Script
-                });
-                // *** FIN DE LA MODIFICACIÓN ***
-                
-                if (!response.ok) {
-                    throw new Error(`Error en la respuesta del servidor: ${response.statusText} (Código: ${response.status})`);
-                }
-                
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    // Llama a la función para poner los datos en el HTML
-                    updateDOMWithData(result.data);
-                    statusDiv.textContent = `Datos actualizados correctamente. (Última fila: ${result.lastRow})`;
-                    statusDiv.classList.remove('text-red-600', 'bg-red-100');
-                    statusDiv.classList.add('text-green-600', 'bg-green-100');
+                // Eliminar duplicados y unir
+                const colsParam = [...new Set(requestedCols)].join(',');
+                const url = `${GAS_WEB_APP_URL}?colsToQuery=${colsParam}`;
+
+                const response = await fetch(url);
+                const json = await response.json();
+
+                if (json.status === 'success') {
+                    updateUI(json.data);
+                    statusDiv.textContent = `Datos actualizados (Fila: ${json.lastRow})`;
+                    setTimeout(() => statusDiv.classList.add('hidden'), 2000);
                 } else {
-                    throw new Error(result.error || 'Error desconocido del script de Google.');
+                    throw new Error(json.error || 'Error desconocido');
                 }
-
             } catch (error) {
-                console.error('Error al consultar Google Sheets:', error);
-                statusDiv.textContent = `Error al consultar: ${error.message}`;
-                statusDiv.classList.remove('hidden', 'text-green-600', 'bg-green-100');
-                statusDiv.classList.add('text-red-600', 'bg-red-100');
+                console.error(error);
+                statusDiv.textContent = "Error de conexión con Google Sheets.";
+                statusDiv.classList.add('text-red-600');
+            } finally {
+                isFetching = false;
             }
         }
 
-        /**
-         * Recibe los datos del script de Google y actualiza los <span> en el HTML.
-         * @param {object} data - Objeto con los datos (ej: { "Va": 120, "Vb": 121, "Ia": 1.5 })
-         */
-        function updateDOMWithData(data) {
-            // Primero, resetea todos los spans (por si un dato viene vacío)
-            clearAllDataSpans();
-
-            for (const colName in data) {
-                const spanId = dataIdMap[colName];
-                if (spanId) {
-                    const spanElement = document.getElementById(spanId);
-                    if (spanElement) {
-                        // Formatea el número si es numérico, sino lo deja como texto
-                        let value = data[colName];
-                        if (typeof value === 'number') {
-                            value = parseFloat(value.toFixed(2)); // Redondea a 2 decimales
-                        }
-                        // Si el valor es nulo o indefinido, muestra 'N/A'
-                        if (value === null || typeof value === 'undefined') {
-                            value = 'N/A';
-                        }
-                        spanElement.textContent = value;
-                    }
+        function updateUI(data) {
+            // data es un objeto tipo { "Va": 120, "Vb": 110 ... }
+            for (const key in data) {
+                // Buscamos el elemento por ID, ej: "data-Va"
+                const el = document.getElementById(`data-${key}`);
+                if (el) {
+                    let val = data[key];
+                    if (typeof val === 'number') val = val.toFixed(2);
+                    el.textContent = val;
+                    // Efecto visual simple
+                    el.classList.remove('fade-in');
+                    void el.offsetWidth; // trigger reflow
+                    el.classList.add('fade-in');
                 }
             }
         }
-
-        /**
-         * Resetea todos los <span> de datos a "..."
-         */
-        function clearAllDataSpans() {
-            for (const colName in dataIdMap) {
-                const spanId = dataIdMap[colName];
-                if (spanId) {
-                    const spanElement = document.getElementById(spanId);
-                    if (spanElement) {
-                        spanElement.textContent = '...';
-                    }
-                }
-            }
-        }
-
     </script>
-
 </body>
 </html>
