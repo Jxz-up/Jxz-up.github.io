@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .hidden { display: none; }
-        /* Animación suave para los datos */
         .fade-in { animation: fadeIn 0.5s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
@@ -31,7 +30,7 @@
                     </div>
                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
                         <input id="chk2" type="checkbox" data-cols="Vab,Vbc,Vca" class="h-4 w-4 text-blue-600">
-                        <label for="chk2" class="ml-2">2. Voltajes Línea</label>
+                        <label for="chk2" class="ml-2">2. Voltajes Línea (Calc)</label>
                     </div>
                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
                         <input id="chk3" type="checkbox" data-cols="Ia,Ib,Ic" class="h-4 w-4 text-blue-600">
@@ -116,12 +115,12 @@
 
     <script>
         // --- CONFIGURACIÓN ---
-        // Pega aquí la NUEVA URL que obtuviste al hacer Deploy > Web App
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyYOkB17jQtRIP17g-6x_2KD-LAeCV-dbqrZ9iNbB-AlSxSsaMZgffov_3Ye7AZvhuw/exec'; 
+        // ¡¡PEGA AQUÍ TU NUEVA URL DESPUÉS DE LA NUEVA IMPLEMENTACIÓN!!
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw4LQiQz54XQnOa7efHSc4MtAMlS8BySC0kfGqDedYAjkHv_pKdTTLkYnGBCN9HQkvK/exec'; 
 
         // --- LÓGICA ---
         document.addEventListener('DOMContentLoaded', function() {
-            // Checkboxes del 1 al 9 y el 13
+            // IDs de checkboxes activos
             const ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 13];
             
             ids.forEach(id => {
@@ -130,12 +129,13 @@
                 if(chk && fs) {
                     chk.addEventListener('change', () => {
                         fs.classList.toggle('hidden', !chk.checked);
-                        fetchData();
+                        fetchData(); // Actualiza al marcar/desmarcar
                     });
                 }
             });
 
-            // Refresco automático cada 5 segundos si hay algo seleccionado
+            // Refresco inicial y periódico
+            fetchData();
             setInterval(fetchData, 5000);
         });
 
@@ -144,7 +144,7 @@
         async function fetchData() {
             if (isFetching) return;
 
-            // Recopilar columnas solicitadas
+            // Verificamos qué checkboxes están marcados
             let requestedCols = [];
             document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
                 requestedCols.push(...chk.dataset.cols.split(','));
@@ -157,52 +157,54 @@
                 return;
             }
 
-            if(GAS_WEB_APP_URL.includes('AQUI_TU_NUEVA_URL')) {
-                statusDiv.textContent = "Error: Debes actualizar la variable GAS_WEB_APP_URL en el código HTML.";
-                statusDiv.classList.remove('hidden');
-                return;
-            }
-
             isFetching = true;
             statusDiv.textContent = "Actualizando...";
-            statusDiv.classList.remove('hidden', 'text-red-600');
+            statusDiv.classList.remove('hidden', 'text-red-600', 'bg-red-100');
+            statusDiv.classList.add('bg-gray-50', 'text-gray-600');
             
             try {
-                // Eliminar duplicados y unir
+                // Eliminar duplicados y unir para la URL
                 const colsParam = [...new Set(requestedCols)].join(',');
                 const url = `${GAS_WEB_APP_URL}?colsToQuery=${colsParam}`;
 
-                const response = await fetch(url);
+                // Fetch con redirect: 'follow' por si acaso
+                const response = await fetch(url, { redirect: 'follow' });
                 const json = await response.json();
 
                 if (json.status === 'success') {
                     updateUI(json.data);
-                    statusDiv.textContent = `Datos actualizados (Fila: ${json.lastRow})`;
-                    setTimeout(() => statusDiv.classList.add('hidden'), 2000);
+                    statusDiv.textContent = `Actualizado correctamente (Último registro: Fila ${json.lastRow})`;
+                    // Ocultar mensaje después de 2 seg
+                    setTimeout(() => {
+                         if(!isFetching) statusDiv.classList.add('hidden'); 
+                    }, 2000);
                 } else {
                     throw new Error(json.error || 'Error desconocido');
                 }
             } catch (error) {
                 console.error(error);
-                statusDiv.textContent = "Error de conexión con Google Sheets.";
-                statusDiv.classList.add('text-red-600');
+                statusDiv.textContent = "Error al conectar con la hoja de cálculo.";
+                statusDiv.classList.remove('text-gray-600', 'bg-gray-50');
+                statusDiv.classList.add('text-red-600', 'bg-red-100');
             } finally {
                 isFetching = false;
             }
         }
 
         function updateUI(data) {
-            // data es un objeto tipo { "Va": 120, "Vb": 110 ... }
+            // Recorremos los datos recibidos, ej: { "Va": 120.5, "Vab": 208.1 ... }
             for (const key in data) {
-                // Buscamos el elemento por ID, ej: "data-Va"
                 const el = document.getElementById(`data-${key}`);
                 if (el) {
                     let val = data[key];
+                    // Si es número, formatea a 2 decimales
                     if (typeof val === 'number') val = val.toFixed(2);
+                    
                     el.textContent = val;
-                    // Efecto visual simple
+                    
+                    // Reiniciar animación
                     el.classList.remove('fade-in');
-                    void el.offsetWidth; // trigger reflow
+                    void el.offsetWidth; // truco para reiniciar reflow CSS
                     el.classList.add('fade-in');
                 }
             }
