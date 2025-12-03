@@ -110,7 +110,7 @@
                 </div>
             </fieldset>
 
-            ---
+            <hr class="my-8 border-gray-300">
             
             <h2 class="text-2xl font-bold text-gray-800 mt-8 mb-4">Consulta de Datos Históricos 📊</h2>
             <fieldset class="mb-6 border border-indigo-300 p-4 rounded-lg bg-indigo-50">
@@ -146,7 +146,8 @@
 
     <script>
         // --- CONFIGURACIÓN ---
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw4LQiQz54XQnOa7efHSc4MtAMlS8BySC0kfGqDedYAjkHv_pKdTTLkYnGBCN9HQkvK/exec';
+        // *** IMPORTANTE: REEMPLAZA ESTA URL CON LA URL DE DESPLIEGUE DE TU SCRIPT GAS ***
+        const GAS_WEB_APP_URL = 'REEMPLAZAR_CON_TU_URL_DE_APPS_SCRIPT';
         const MAX_DATA_POINTS = 30; 
 
         // Almacenamiento global
@@ -154,13 +155,15 @@
         let historicalChart = null;
         let chartDataHistory = {};
         let isFetching = false;
-        const colorPalette = ['#3b82f6', '#ef4444', '#10b981', '#f97316', '#a855f7', '#64748b'];
+        const colorPalette = ['#3b82f6', '#ef4444', '#10b981', '#f97316', '#a855f7', '#64748b', '#06b6d4', '#f472b6'];
 
         // --- FUNCIONES DE GRÁFICOS ---
         
         // 1. Inicializa un gráfico (tiempo real o histórico)
         function initializeChart(canvasId, chartType) {
             let chartInstance;
+            
+            // Destruir instancias anteriores si existen
             if (chartType === 'realTime' && realTimeChart) {
                 realTimeChart.destroy();
             } else if (chartType === 'historical' && historicalChart) {
@@ -201,7 +204,9 @@
             document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
                 requestedCols.push(...chk.dataset.cols.split(','));
             });
-            const activeCols = [...new Set(requestedCols)];
+
+            // Usamos un Set para obtener solo columnas únicas
+            const activeCols = [...new Set(requestedCols)].filter(key => key !== 'Timestamp'); 
 
             if (activeCols.length === 0) {
                 document.getElementById('fs-chart-container').classList.add('hidden');
@@ -214,20 +219,23 @@
 
             // 1. Gestionar el historial
             activeCols.forEach((col, index) => {
+                // Inicializa el historial si no existe
                 if (!chartDataHistory[col]) {
                     chartDataHistory[col] = {
                         label: col,
                         data: [],
                         borderColor: colorPalette[index % colorPalette.length],
-                        backgroundColor: colorPalette[index % colorPalette.length],
+                        backgroundColor: 'transparent',
                         tension: 0.2,
                         pointRadius: 3
                     };
                 }
 
-                const newValue = data[col] !== undefined ? data[col] : null;
+                // Obtener nuevo valor y agregarlo
+                const newValue = data[col] !== undefined ? parseFloat(data[col]) : null;
                 chartDataHistory[col].data.push(newValue);
                 
+                // Limitar el número de puntos
                 if (chartDataHistory[col].data.length > MAX_DATA_POINTS) {
                     chartDataHistory[col].data.shift();
                 }
@@ -265,12 +273,13 @@
             document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
                 requestedCols.push(...chk.dataset.cols.split(','));
             });
-            const activeCols = [...new Set(requestedCols)]; // Solo las columnas únicas que están marcadas
+            const activeCols = [...new Set(requestedCols)].filter(key => key !== 'Timestamp');
 
             // 1. Revisar si hay datos
             if (historicalData.length === 0) {
                 statusDiv.textContent = 'No se encontraron datos en el rango seleccionado.';
                 chartContainer.classList.remove('hidden');
+                // Limpiar gráfico si no hay datos
                 if(historicalChart) {
                     historicalChart.data.datasets = [];
                     historicalChart.data.labels = [];
@@ -291,8 +300,8 @@
             activeCols.forEach((col, index) => {
                 datasets.push({
                     label: col,
-                    // Mapea los datos. La clave 'col' debe coincidir con la respuesta del GAS.
-                    data: historicalData.map(row => row[col]), 
+                    // Mapea los datos y convierte a número flotante por seguridad
+                    data: historicalData.map(row => parseFloat(row[col])), 
                     borderColor: colorPalette[index % colorPalette.length],
                     backgroundColor: 'transparent',
                     tension: 0.1,
@@ -362,7 +371,7 @@
             }
         }
 
-        // --- FUNCIÓN FETCH DATA (HISTÓRICO) ---
+        // --- FUNCIÓN FETCH DATA (HISTÓRICO) CORREGIDA ---
         async function fetchHistoricalData() {
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
@@ -401,14 +410,17 @@
                 const json = await response.json();
 
                 if (json.status === 'success') {
-                    // Llama a la función corregida
-                    renderHistoricalChart(json.data); 
+                    // *** VERIFICACIÓN CRÍTICA ***: Asegura que 'data' es un array antes de usar .map()
+                    if (Array.isArray(json.data)) {
+                         renderHistoricalChart(json.data); 
+                    } else {
+                         throw new Error("El servidor no devolvió una lista (array) de datos históricos. Respuesta: " + JSON.stringify(json.data));
+                    }
                 } else {
                     throw new Error(json.error || 'Error desconocido en la respuesta del servidor.');
                 }
             } catch (error) {
                 console.error("Error Histórico:", error);
-                // El mensaje de error ahora proviene de la validación interna del frontend
                 statusDiv.textContent = `Error al obtener datos históricos: ${error.message}`; 
             }
         }
@@ -468,7 +480,8 @@
 
             // Refresco inicial y periódico
             fetchData();
-            setInterval(fetchData, 5000);
+            // Refrescar cada 5 segundos
+            setInterval(fetchData, 5000); 
         });
 
         // Función de actualización de valores (UI)
@@ -477,12 +490,18 @@
                 const el = document.getElementById(`data-${key}`);
                 if (el) {
                     let val = data[key];
-                    if (typeof val === 'number') val = val.toFixed(2);
+                    if (typeof val === 'number') {
+                         // Formatear números a 2 decimales para la UI
+                        val = val.toFixed(2); 
+                    } else if (val === null || val === undefined) {
+                        val = 'N/A';
+                    }
                     
                     el.textContent = val;
                     
+                    // Efecto fade-in para indicar el cambio de dato
                     el.classList.remove('fade-in');
-                    void el.offsetWidth;
+                    void el.offsetWidth; // Trigger reflow
                     el.classList.add('fade-in');
                 }
             }
