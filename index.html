@@ -1,181 +1,158 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizador de Datos PZEM</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Datos PZEM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-    <style>
-        .hidden { display: none; }
-        .fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    </style>
+    <style>
+        .hidden { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans">
 
-    <div class="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
-        <div class="bg-white rounded-xl shadow-lg p-6 sm:p-8">
-            
-            <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
-                Monitor de Energía (PZEM)
-            </h1>
+    <div class="container mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
+        <div class="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+            
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
+                Monitor de Energía (PZEM)
+            </h1>
 
-            <fieldset class="mb-6 border border-gray-300 p-4 rounded-lg">
-                <legend class="text-xl font-semibold text-gray-700 px-2">Seleccionar Parámetros</legend>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
-                    
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk1" type="checkbox" data-cols="Va,Vb,Vc" class="h-4 w-4 text-blue-600">
-                        <label for="chk1" class="ml-2">1. Voltajes Fase (Va, Vb, Vc)</label>
-                    </div>
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk2" type="checkbox" data-cols="Vab,Vbc,Vca" class="h-4 w-4 text-blue-600">
-                        <label for="chk2" class="ml-2">2. Voltajes Línea (Calc)</label>
-                    </div>
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk3" type="checkbox" data-cols="Ia,Ib,Ic" class="h-4 w-4 text-blue-600">
-                        <label for="chk3" class="ml-2">3. Corrientes (Ia, Ib, Ic)</label>
-                    </div>
-                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk4" type="checkbox" data-cols="Fa,Fb,Fc" class="h-4 w-4 text-blue-600">
-                        <label for="chk4" class="ml-2">4. Frecuencias (Hz)</label>
-                    </div>
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk5" type="checkbox" data-cols="FPa,FPb,FPc" class="h-4 w-4 text-blue-600">
-                        <label for="chk5" class="ml-2">5. Factor de Potencia</label>
-                    </div>
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk6" type="checkbox" data-cols="Pa,Pb,Pc" class="h-4 w-4 text-blue-600">
-                        <label for="chk6" class="ml-2">6. Potencia Activa (W)</label>
-                    </div>
-                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk7" type="checkbox" data-cols="Qa,Qb,Qc" class="h-4 w-4 text-blue-600">
-                        <label for="chk7" class="ml-2">7. Potencia Reactiva (VAR)</label>
-                    </div>
-                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk8" type="checkbox" data-cols="Sa,Sb,Sc" class="h-4 w-4 text-blue-600">
-                        <label for="chk8" class="ml-2">8. Potencia Aparente (VA)</label>
-                    </div>
-                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk9" type="checkbox" data-cols="Pt,Qt,St" class="h-4 w-4 text-blue-600">
-                        <label for="chk9" class="ml-2">9. Totales (Pt, Qt, St)</label>
-                    </div>
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk13" type="checkbox" data-cols="E_Pt,E_Qt,E_St" class="h-4 w-4 text-blue-600">
-                        <label for="chk13" class="ml-2">10. Energía Total Acumulada</label>
-                    </div>
-                </div>
-            </fieldset>
+            <fieldset class="mb-6 border border-gray-300 p-4 rounded-lg">
+                <legend class="text-xl font-semibold text-gray-700 px-2">Seleccionar Parámetros</legend>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+                    
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk1" type="checkbox" data-cols="Va,Vb,Vc" class="h-4 w-4 text-blue-600">
+                        <label for="chk1" class="ml-2">1. Voltajes Fase (Va, Vb, Vc)</label>
+                    </div>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk3" type="checkbox" data-cols="Ia,Ib,Ic" class="h-4 w-4 text-blue-600">
+                        <label for="chk3" class="ml-2">3. Corrientes (Ia, Ib, Ic)</label>
+                    </div>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk6" type="checkbox" data-cols="Pa,Pb,Pc" class="h-4 w-4 text-blue-600">
+                        <label for="chk6" class="ml-2">6. Potencia Activa (W)</label>
+                    </div>
+                    </div>
+            </fieldset>
 
-            <div id="status-message" class="text-center p-4 my-4 text-gray-600 rounded-lg bg-gray-50 hidden"></div>
+            <div id="status-message" class="text-center p-4 my-4 text-gray-600 rounded-lg bg-gray-50 hidden"></div>
 
-            <fieldset id="fs-chart-container" class="hidden border border-gray-300 p-4 rounded-lg mt-4">
+            <div id="data-container" class="space-y-4">
+                <fieldset id="fs1" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">1. Voltajes Fase</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Va</small><br><strong id="data-Va" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Vb</small><br><strong id="data-Vb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Vc</small><br><strong id="data-Vc" class="text-xl">...</strong></div></div>
+                </fieldset>
+                <fieldset id="fs3" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">3. Corrientes</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Ia</small><br><strong id="data-Ia" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Ib</small><br><strong id="data-Ib" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Ic</small><br><strong id="data-Ic" class="text-xl">...</strong></div></div>
+                </fieldset>
+                <fieldset id="fs6" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">6. Potencia Activa</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Pa</small><br><strong id="data-Pa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Pb</small><br><strong id="data-Pb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Pc</small><br><strong id="data-Pc" class="text-xl">...</strong></div></div>
+                </fieldset>
+                
+            </div>
+            
+            <fieldset id="fs-chart-container" class="hidden border border-gray-300 p-4 rounded-lg mt-6">
                 <legend class="text-xl font-semibold text-gray-700 px-2">Gráfico en Tiempo Real</legend>
                 <div class="p-2">
                     <canvas id="realTimeChart" style="max-height: 400px;"></canvas>
                 </div>
             </fieldset>
 
-            <div id="data-container" class="space-y-4">
-                <fieldset id="fs1" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">1. Voltajes Fase</legend>
-                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Va</small><br><strong id="data-Va" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Vb</small><br><strong id="data-Vb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Vc</small><br><strong id="data-Vc" class="text-xl">...</strong></div></div>
-                </fieldset>
-                <fieldset id="fs2" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">2. Voltajes Línea</legend>
-                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Vab</small><br><strong id="data-Vab" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Vbc</small><br><strong id="data-Vbc" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Vca</small><br><strong id="data-Vca" class="text-xl">...</strong></div></div>
-                </fieldset>
-                <fieldset id="fs3" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">3. Corrientes</legend>
-                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Ia</small><br><strong id="data-Ia" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Ib</small><br><strong id="data-Ib" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Ic</small><br><strong id="data-Ic" class="text-xl">...</strong></div></div>
-                </fieldset>
-                <fieldset id="fs4" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">4. Frecuencias</legend>
-                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Fa</small><br><strong id="data-Fa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Fb</small><br><strong id="data-Fb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Fc</small><br><strong id="data-Fc" class="text-xl">...</strong></div></div>
-                </fieldset>
-                <fieldset id="fs5" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">5. Factor de Potencia</legend>
-                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>FPa</small><br><strong id="data-FPa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>FPb</small><br><strong id="data-FPb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>FPc</small><br><strong id="data-FPc" class="text-xl">...</strong></div></div>
-                </fieldset>
-                <fieldset id="fs6" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">6. Potencia Activa</legend>
-                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Pa</small><br><strong id="data-Pa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Pb</small><br><strong id="data-Pb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Pc</small><br><strong id="data-Pc" class="text-xl">...</strong></div></div>
-                </fieldset>
-                
-                 <fieldset id="fs7" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">7. Potencia Reactiva</legend>
-                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Qa</small><br><strong id="data-Qa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Qb</small><br><strong id="data-Qb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Qc</small><br><strong id="data-Qc" class="text-xl">...</strong></div></div>
-                </fieldset>
+            ---
+            
+            <h2 class="text-2xl font-bold text-gray-800 mt-8 mb-4">Consulta de Datos Históricos 📊</h2>
+            <fieldset class="mb-6 border border-indigo-300 p-4 rounded-lg bg-indigo-50">
+                <legend class="text-lg font-semibold text-indigo-700 px-2">Selección de Rango</legend>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                    
+                    <div>
+                        <label for="startDate" class="block text-sm font-medium text-gray-700">Fecha/Hora de Inicio:</label>
+                        <input type="datetime-local" id="startDate" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                    </div>
+                    
+                    <div>
+                        <label for="endDate" class="block text-sm font-medium text-gray-700">Fecha/Hora Final:</label>
+                        <input type="datetime-local" id="endDate" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                    </div>
 
-                 <fieldset id="fs8" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">8. Potencia Aparente</legend>
-                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Sa</small><br><strong id="data-Sa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Sb</small><br><strong id="data-Sb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Sc</small><br><strong id="data-Sc" class="text-xl">...</strong></div></div>
-                </fieldset>
+                    <button id="fetchHistoricalBtn" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-150">
+                        Consultar Histórico
+                    </button>
+                </div>
+            </fieldset>
 
-                <fieldset id="fs9" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">9. Totales</legend>
-                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Pt Total</small><br><strong id="data-Pt" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Qt Total</small><br><strong id="data-Qt" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>St Total</small><br><strong id="data-St" class="text-xl">...</strong></div></div>
-                </fieldset>
+            <fieldset id="fs-historical-chart-container" class="hidden border border-gray-300 p-4 rounded-lg mt-4">
+                <legend class="text-xl font-semibold text-gray-700 px-2">Gráfico Histórico</legend>
+                <div id="historical-status" class="text-center p-2 my-2 text-gray-600"></div>
+                <div class="p-2">
+                    <canvas id="historicalChart" style="max-height: 450px;"></canvas>
+                </div>
+            </fieldset>
 
-                <fieldset id="fs13" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">10. Energías Acumuladas</legend>
-                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>E. Activa</small><br><strong id="data-E_Pt" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>E. Reactiva</small><br><strong id="data-E_Qt" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>E. Aparente</small><br><strong id="data-E_St" class="text-xl">...</strong></div></div>
-                </fieldset>
-            </div>
-        </div>
-    </div>
+        </div>
+    </div>
 
-    <script>
-        // --- CONFIGURACIÓN ---
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw4LQiQz54XQnOa7efHSc4MtAMlS8BySC0kfGqDedYAjkHv_pKdTTLkYnGBCN9HQkvK/exec'; 
-        const MAX_DATA_POINTS = 30; // Mostrar los últimos 30 puntos de datos
+    <script>
+        // --- CONFIGURACIÓN ---
+        // Debes asegurarte de que tu Web App de Google Sheets acepte el nuevo parámetro 'mode=historical'
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw4LQiQz54XQnOa7efHSc4MtAMlS8BySC0kfGqDedYAjkHv_pKdTTLkYnGBCN9HQkvK/exec';
+        const MAX_DATA_POINTS = 30; // Solo para el gráfico en tiempo real
 
-        // Almacenamiento global para los datos de los gráficos
-        let chartDataHistory = {};
-        let myChart = null; // Variable para almacenar la instancia de Chart.js
-        let isFetching = false;
-        const colorPalette = ['#3b82f6', '#ef4444', '#10b981', '#f97316', '#a855f7', '#64748b']; // Colores para las 3 fases/parámetros
+        // Almacenamiento global
+        let realTimeChart = null; // Instancia para tiempo real
+        let historicalChart = null; // Instancia para histórico
+        let chartDataHistory = {};
+        let isFetching = false;
+        const colorPalette = ['#3b82f6', '#ef4444', '#10b981', '#f97316', '#a855f7', '#64748b'];
 
-        // Función para inicializar el gráfico de Chart.js
-        function initializeChart(labels, datasets) {
-            const ctx = document.getElementById('realTimeChart').getContext('2d');
-            // Si ya existe una instancia, la destruimos
-            if (myChart) {
-                myChart.destroy();
+        // --- FUNCIONES DE GRÁFICOS ---
+        
+        // 1. Inicializa un gráfico (tiempo real o histórico)
+        function initializeChart(canvasId, chartType) {
+            let chartInstance;
+            if (chartType === 'realTime' && realTimeChart) {
+                realTimeChart.destroy();
+            } else if (chartType === 'historical' && historicalChart) {
+                historicalChart.destroy();
             }
 
-            myChart = new Chart(ctx, {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            chartInstance = new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: datasets
-                },
+                data: { labels: [], datasets: [] },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    animation: false, // Desactiva animaciones para la actualización en tiempo real
+                    animation: chartType === 'realTime' ? false : true,
                     plugins: {
-                        legend: {
-                            display: true
-                        },
-                        title: {
-                            display: true,
-                            text: 'Comportamiento en Tiempo Real'
-                        }
+                        legend: { display: true },
+                        title: { display: true, text: chartType === 'realTime' ? 'Comportamiento en Tiempo Real' : 'Datos Históricos' }
                     },
-                    scales: {
-                        y: {
-                            // Puedes configurar min/max si conoces los rangos esperados
-                            beginAtZero: false 
-                        }
-                    }
+                    scales: { y: { beginAtZero: false } }
                 }
             });
+
+            if (chartType === 'realTime') {
+                realTimeChart = chartInstance;
+            } else {
+                historicalChart = chartInstance;
+            }
         }
+        
+        // 2. Actualiza el gráfico en tiempo real
+        function updateRealTimeChart(data) {
+            if (!realTimeChart) return;
 
-        // Lógica para actualizar el gráfico con nuevos datos
-        function updateChart(data) {
-            if (!myChart) return;
-
-            // Obtener las columnas activas (todas las que se muestran)
             let requestedCols = [];
             document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
                 requestedCols.push(...chk.dataset.cols.split(','));
             });
             const activeCols = [...new Set(requestedCols)];
 
-            // Si no hay columnas seleccionadas, oculta el gráfico y termina
             if (activeCols.length === 0) {
                 document.getElementById('fs-chart-container').classList.add('hidden');
                 return;
@@ -185,9 +162,8 @@
             const newTimestamp = new Date().toLocaleTimeString();
             let newDatasets = [];
 
-            // 1. Gestionar el historial de datos
+            // 1. Gestionar el historial
             activeCols.forEach((col, index) => {
-                // Si la columna no está en el historial, inicialízala
                 if (!chartDataHistory[col]) {
                     chartDataHistory[col] = {
                         label: col,
@@ -199,11 +175,9 @@
                     };
                 }
 
-                // Añadir el nuevo punto de dato
                 const newValue = data[col] !== undefined ? data[col] : null;
                 chartDataHistory[col].data.push(newValue);
                 
-                // Limitar el historial
                 if (chartDataHistory[col].data.length > MAX_DATA_POINTS) {
                     chartDataHistory[col].data.shift();
                 }
@@ -211,131 +185,218 @@
                 newDatasets.push(chartDataHistory[col]);
             });
 
-            // 2. Limpiar el historial de columnas que ya no están seleccionadas
+            // Limpiar historial de columnas no seleccionadas
             for (const key in chartDataHistory) {
                 if (!activeCols.includes(key)) {
                     delete chartDataHistory[key];
                 }
             }
+            
+            // 2. Gestionar etiquetas de tiempo (X-Axis)
+            if (!realTimeChart.data.labels) realTimeChart.data.labels = [];
+            realTimeChart.data.labels.push(newTimestamp);
 
-            // 3. Gestionar las etiquetas de tiempo (etiquetas X)
-            // Usamos las etiquetas de la primera columna activa como referencia
-            const refCol = activeCols[0];
-            if (!myChart.data.labels || myChart.data.labels.length === 0) {
-                // Inicializar etiquetas si es la primera vez
-                myChart.data.labels = new Array(newDatasets[0].data.length).fill('');
+            if (realTimeChart.data.labels.length > MAX_DATA_POINTS) {
+                realTimeChart.data.labels.shift();
             }
 
-            // Añadir la nueva etiqueta
-            myChart.data.labels.push(newTimestamp);
-
-            // Limitar las etiquetas de tiempo
-            if (myChart.data.labels.length > MAX_DATA_POINTS) {
-                myChart.data.labels.shift();
-            }
-
-            // 4. Actualizar el gráfico
-            myChart.data.datasets = newDatasets;
-            myChart.update();
+            // 3. Actualizar
+            realTimeChart.data.datasets = newDatasets;
+            realTimeChart.update();
         }
 
-        // --- LÓGICA PRINCIPAL ---
-        document.addEventListener('DOMContentLoaded', function() {
-            // IDs de checkboxes activos
-            const ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 13];
-            
-            ids.forEach(id => {
-                const chk = document.getElementById('chk' + id);
-                const fs = document.getElementById('fs' + id);
-                if(chk && fs) {
-                    chk.addEventListener('change', () => {
-                        fs.classList.toggle('hidden', !chk.checked);
-                        fetchData(); // Actualiza al marcar/desmarcar
-                        // Al cambiar la selección, reiniciamos el historial para tener un gráfico limpio
-                        chartDataHistory = {};
-                        initializeChart([], []); // Re-inicializa el gráfico para mostrar los nuevos parámetros
-                    });
-                }
-            });
+        // 3. Renderiza el gráfico histórico con los datos recibidos
+        function renderHistoricalChart(historicalData) {
+            const chartContainer = document.getElementById('fs-historical-chart-container');
+            const statusDiv = document.getElementById('historical-status');
             
-            // Inicializar el gráfico la primera vez (vacío)
-            initializeChart([], []);
+            if (historicalData.length === 0) {
+                statusDiv.textContent = 'No se encontraron datos en el rango seleccionado.';
+                chartContainer.classList.remove('hidden');
+                if(historicalChart) historicalChart.data.datasets = []; // Limpiar gráfico
+                return;
+            }
 
-            // Refresco inicial y periódico
-            fetchData();
-            setInterval(fetchData, 5000);
-        });
+            statusDiv.textContent = `Mostrando ${historicalData.length} registros.`;
+            chartContainer.classList.remove('hidden');
 
-        async function fetchData() {
-            if (isFetching) return;
+            // Nombres de las columnas (asumiendo que la primera fila es el encabezado, o basándonos en los datos)
+            const cols = Object.keys(historicalData[0]).filter(key => key !== 'Timestamp');
+            
+            const labels = historicalData.map(row => row.Timestamp);
+            let datasets = [];
 
-            // Verificamos qué checkboxes están marcados
-            let requestedCols = [];
-            document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
-                requestedCols.push(...chk.dataset.cols.split(','));
-            });
+            cols.forEach((col, index) => {
+                datasets.push({
+                    label: col,
+                    data: historicalData.map(row => row[col]),
+                    borderColor: colorPalette[index % colorPalette.length],
+                    backgroundColor: 'transparent',
+                    tension: 0.1,
+                    pointRadius: 1
+                });
+            });
 
-            const statusDiv = document.getElementById('status-message');
-            
-            if (requestedCols.length === 0) {
-                statusDiv.classList.add('hidden');
-                return;
-            }
+            // Destruir e inicializar con nuevos datos
+            if (historicalChart) historicalChart.destroy();
+            initializeChart('historicalChart', 'historical');
+            
+            historicalChart.data.labels = labels;
+            historicalChart.data.datasets = datasets;
+            historicalChart.update();
+        }
 
-            isFetching = true;
-            statusDiv.textContent = "Actualizando...";
-            statusDiv.classList.remove('hidden', 'text-red-600', 'bg-red-100');
-            statusDiv.classList.add('bg-gray-50', 'text-gray-600');
-            
-            try {
-                // Eliminar duplicados y unir para la URL
-                const colsParam = [...new Set(requestedCols)].join(',');
-                const url = `${GAS_WEB_APP_URL}?colsToQuery=${colsParam}`;
+        // --- FUNCIÓN FETCH DATA (TIEMPO REAL) ---
+        async function fetchData() {
+            if (isFetching) return;
 
-                const response = await fetch(url, { redirect: 'follow' });
-                const json = await response.json();
+            let requestedCols = [];
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
+                requestedCols.push(...chk.dataset.cols.split(','));
+            });
 
-                if (json.status === 'success') {
-                    updateUI(json.data);
-                    // 3. LLAMADA A LA FUNCIÓN DE GRÁFICOS
-                    updateChart(json.data);
-                    // ------------------------------------
-                    statusDiv.textContent = `Actualizado correctamente (Último registro: Fila ${json.lastRow})`;
-                    // Ocultar mensaje después de 2 seg
-                    setTimeout(() => {
-                         if(!isFetching) statusDiv.classList.add('hidden'); 
-                    }, 2000);
-                } else {
-                    throw new Error(json.error || 'Error desconocido');
-                }
-            } catch (error) {
-                console.error(error);
-                statusDiv.textContent = "Error al conectar con la hoja de cálculo.";
-                statusDiv.classList.remove('text-gray-600', 'bg-gray-50');
-                statusDiv.classList.add('text-red-600', 'bg-red-100');
-            } finally {
-                isFetching = false;
-            }
-        }
+            const statusDiv = document.getElementById('status-message');
 
-        function updateUI(data) {
-            // Recorremos los datos recibidos, ej: { "Va": 120.5, "Vab": 208.1 ... }
-            for (const key in data) {
-                const el = document.getElementById(`data-${key}`);
-                if (el) {
-                    let val = data[key];
-                    // Si es número, formatea a 2 decimales
-                    if (typeof val === 'number') val = val.toFixed(2);
-                    
-                    el.textContent = val;
-                    
-                    // Reiniciar animación
-                    el.classList.remove('fade-in');
-                    void el.offsetWidth; // truco para reiniciar reflow CSS
-                    el.classList.add('fade-in');
-                }
-            }
-        }
-    </script>
+            if (requestedCols.length === 0) {
+                statusDiv.classList.add('hidden');
+                document.getElementById('fs-chart-container').classList.add('hidden');
+                return;
+            }
+
+            isFetching = true;
+            statusDiv.textContent = "Actualizando datos en tiempo real...";
+            statusDiv.classList.remove('hidden', 'text-red-600', 'bg-red-100');
+            statusDiv.classList.add('bg-gray-50', 'text-gray-600');
+
+            try {
+                const colsParam = [...new Set(requestedCols)].join(',');
+                // El modo por defecto es 'realtime'
+                const url = `${GAS_WEB_APP_URL}?mode=realtime&colsToQuery=${colsParam}`;
+
+                const response = await fetch(url, { redirect: 'follow' });
+                const json = await response.json();
+
+                if (json.status === 'success') {
+                    updateUI(json.data);
+                    updateRealTimeChart(json.data);
+                    
+                    statusDiv.textContent = `Actualizado: Fila ${json.lastRow}`;
+                    statusDiv.classList.add('fade-in');
+                    setTimeout(() => {
+                        if(!isFetching) statusDiv.classList.add('hidden');
+                    }, 2000);
+
+                } else {
+                    throw new Error(json.error || 'Error desconocido');
+                }
+            } catch (error) {
+                console.error("Error RT:", error);
+                statusDiv.textContent = "Error RT: Fallo en conexión o datos.";
+                statusDiv.classList.remove('text-gray-600', 'bg-gray-50');
+                statusDiv.classList.add('text-red-600', 'bg-red-100');
+                statusDiv.classList.add('fade-in');
+            } finally {
+                isFetching = false;
+            }
+        }
+
+        // --- FUNCIÓN FETCH DATA (HISTÓRICO) (NUEVO) ---
+        async function fetchHistoricalData() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const statusDiv = document.getElementById('historical-status');
+            const chartContainer = document.getElementById('fs-historical-chart-container');
+            
+            // Validaciones
+            if (!startDate || !endDate) {
+                statusDiv.textContent = 'Por favor, selecciona una fecha y hora de inicio y fin.';
+                chartContainer.classList.remove('hidden');
+                return;
+            }
+
+            // Obtener columnas seleccionadas
+            let requestedCols = [];
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
+                requestedCols.push(...chk.dataset.cols.split(','));
+            });
+            
+            if (requestedCols.length === 0) {
+                statusDiv.textContent = 'Selecciona al menos un parámetro (Voltajes, Corrientes, etc.) para la consulta histórica.';
+                chartContainer.classList.remove('hidden');
+                return;
+            }
+            
+            // Mostrar estado
+            statusDiv.textContent = "Consultando datos históricos...";
+            chartContainer.classList.remove('hidden');
+            
+            try {
+                const colsParam = [...new Set(requestedCols)].join(',');
+                
+                // Formato de fecha para pasar por URL (ej: YYYY-MM-DDTHH:MM)
+                const url = `${GAS_WEB_APP_URL}?mode=historical&start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}&colsToQuery=${colsParam}`;
+                
+                const response = await fetch(url, { redirect: 'follow' });
+                const json = await response.json();
+
+                if (json.status === 'success') {
+                    renderHistoricalChart(json.data);
+                } else {
+                    throw new Error(json.error || 'Error desconocido en la respuesta del servidor.');
+                }
+            } catch (error) {
+                console.error("Error Histórico:", error);
+                statusDiv.textContent = `Error al obtener datos históricos: ${error.message}`;
+            }
+        }
+
+        // --- LÓGICA PRINCIPAL ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const ids = [1, 3, 6]; // Ajustar a los IDs de los checkboxes que tienes
+            
+            // Configurar Listeners para visibilidad de datos en tiempo real
+            ids.forEach(id => {
+                const chk = document.getElementById('chk' + id);
+                const fs = document.getElementById('fs' + id);
+                if(chk && fs) {
+                    chk.addEventListener('change', () => {
+                        fs.classList.toggle('hidden', !chk.checked);
+                        // Limpiar historial al cambiar la selección para un gráfico nuevo
+                        chartDataHistory = {}; 
+                        initializeChart('realTimeChart', 'realTime');
+                        fetchData(); 
+                    });
+                }
+            });
+            
+            // Listener para el botón de consulta histórica
+            document.getElementById('fetchHistoricalBtn').addEventListener('click', fetchHistoricalData);
+
+            // Inicializar ambos gráficos al cargar la página (vacíos)
+            initializeChart('realTimeChart', 'realTime');
+            initializeChart('historicalChart', 'historical');
+            
+            // Refresco inicial y periódico
+            fetchData();
+            setInterval(fetchData, 5000);
+        });
+
+        // Función de actualización de valores (UI)
+        function updateUI(data) {
+            for (const key in data) {
+                const el = document.getElementById(`data-${key}`);
+                if (el) {
+                    let val = data[key];
+                    if (typeof val === 'number') val = val.toFixed(2);
+                    
+                    el.textContent = val;
+                    
+                    el.classList.remove('fade-in');
+                    void el.offsetWidth;
+                    el.classList.add('fade-in');
+                }
+            }
+        }
+    </script>
 </body>
 </html>
