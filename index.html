@@ -214,12 +214,12 @@
             }
             document.getElementById('fs-chart-container').classList.remove('hidden');
 
-            // ***** MODIFICADO PARA FORMATO 12H (hh:mm:ss a) *****
+            // ***** CAMBIO: FORMATO 24H (HH:mm:ss) para tiempo real *****
             const newTimestamp = new Date().toLocaleTimeString('es-ES', { 
                 hour: '2-digit', 
                 minute: '2-digit', 
                 second: '2-digit', 
-                hour12: true 
+                hour12: false // 24 horas
             }); 
             // ****************************************************
 
@@ -300,7 +300,7 @@
             statusDiv.textContent = `Mostrando ${historicalData.length} registros.`;
             chartContainer.classList.remove('hidden');
 
-            // Los labels serán la columna Timestamp (ya viene en formato 12h del backend)
+            // Los labels serán la columna Timestamp (ya viene en formato 24h del backend)
             const labels = historicalData.map(row => row.Timestamp);
             let datasets = [];
 
@@ -418,7 +418,6 @@
                 const json = await response.json();
 
                 if (json.status === 'success') {
-                    // *** VERIFICACIÓN CRÍTICA ***: Asegura que 'data' es un array antes de usar .map()
                     if (Array.isArray(json.data)) {
                         renderHistoricalChart(json.data); 
                     } else {
@@ -442,7 +441,7 @@
             for (const key in data) {
                 const element = document.getElementById(`data-${key}`);
                 if (element) {
-                    // Redondear todos los valores mostrados en la UI a 2 decimales
+                    // Redondear todos los valores mostrados en la UI a 3 decimales
                     element.textContent = parseFloat(data[key]).toFixed(3);
                 }
             }
@@ -488,16 +487,17 @@
             fetchData();
             setInterval(fetchData, 5000); // Consulta cada 5 segundos
 
-            // 5. Inicializar la hora de fin con la hora actual
+            // 5. Inicializar la hora de fin con la hora actual y la de inicio 24h antes
             const now = new Date();
             const offset = now.getTimezoneOffset() * 60000;
-            const localIsoString = (new Date(now.getTime() - offset)).toISOString().slice(0, 16);
-            document.getElementById('endDate').value = localIsoString;
+            // Usamos una función para obtener el string ISO local (sin Z o zona horaria)
+            const getLocalIso = (date) => (new Date(date.getTime() - offset)).toISOString().slice(0, 16);
+            
+            document.getElementById('endDate').value = getLocalIso(now);
             
             // Hora de inicio: 24 horas antes
             const start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-            const startLocalIsoString = (new Date(start.getTime() - offset)).toISOString().slice(0, 16);
-            document.getElementById('startDate').value = startLocalIsoString;
+            document.getElementById('startDate').value = getLocalIso(start);
         });
     </script>
 
