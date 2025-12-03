@@ -113,18 +113,19 @@
             <hr class="my-8 border-gray-300">
             
             <h2 class="text-2xl font-bold text-gray-800 mt-8 mb-4">Consulta de Datos Históricos 📊</h2>
+            
             <fieldset class="mb-6 border border-indigo-300 p-4 rounded-lg bg-indigo-50">
                 <legend class="text-lg font-semibold text-indigo-700 px-2">Selección de Rango</legend>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
                     
                     <div>
-                        <label for="startDate" class="block text-sm font-medium text-gray-700">Fecha/Hora de Inicio:</label>
-                        <input type="datetime-local" id="startDate" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                        <label for="startDate" class="block text-sm font-medium text-gray-700">Fecha/Hora de Inicio (DD/MM/AAAA HH:MM):</label>
+                        <input type="text" id="startDate" placeholder="Ej: 25/11/2025 18:30" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
                     </div>
                     
                     <div>
-                        <label for="endDate" class="block text-sm font-medium text-gray-700">Fecha/Hora Final:</label>
-                        <input type="datetime-local" id="endDate" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                        <label for="endDate" class="block text-sm font-medium text-gray-700">Fecha/Hora Final (DD/MM/AAAA HH:MM):</label>
+                        <input type="text" id="endDate" placeholder="Ej: 26/11/2025 18:30" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
                     </div>
 
                     <button id="fetchHistoricalBtn" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-150">
@@ -132,7 +133,6 @@
                     </button>
                 </div>
             </fieldset>
-
             <fieldset id="fs-historical-chart-container" class="hidden border border-gray-300 p-4 rounded-lg mt-4">
                 <legend class="text-xl font-semibold text-gray-700 px-2">Gráfico Histórico</legend>
                 <div id="historical-status" class="text-center p-2 my-2 text-gray-600"></div>
@@ -157,13 +157,23 @@
         let isFetching = false;
         const colorPalette = ['#3b82f6', '#ef4444', '#10b981', '#f97316', '#a855f7', '#64748b', '#06b6d4', '#f472b6'];
 
+        // --- FUNCIÓN CLAVE: Formato y Obtención de Fecha (24H) ---
+        // Genera el formato DD/MM/AAAA HH:MM para la visualización en el campo de texto.
+        function getFormattedDate(date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0'); // HH (24H)
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            
+            return `${day}/${month}/${year} ${hours}:${minutes}`;
+        }
+
         // --- FUNCIONES DE GRÁFICOS ---
         
-        // 1. Inicializa un gráfico (tiempo real o histórico)
         function initializeChart(canvasId, chartType) {
             let chartInstance;
             
-            // Destruir instancias anteriores si existen
             if (chartType === 'realTime' && realTimeChart) {
                 realTimeChart.destroy();
             } else if (chartType === 'historical' && historicalChart) {
@@ -196,7 +206,6 @@
             }
         }
         
-        // 2. Actualiza el gráfico en tiempo real
         function updateRealTimeChart(data) {
             if (!realTimeChart) return;
 
@@ -205,7 +214,6 @@
                 requestedCols.push(...chk.dataset.cols.split(','));
             });
 
-            // Usamos un Set para obtener solo columnas únicas
             const activeCols = [...new Set(requestedCols)].filter(key => key !== 'Timestamp'); 
 
             if (activeCols.length === 0) {
@@ -214,20 +222,17 @@
             }
             document.getElementById('fs-chart-container').classList.remove('hidden');
 
-            // ***** CAMBIO: FORMATO 24H (HH:mm:ss) para tiempo real *****
+            // Formato 24H (HH:mm:ss) para tiempo real
             const newTimestamp = new Date().toLocaleTimeString('es-ES', { 
                 hour: '2-digit', 
                 minute: '2-digit', 
                 second: '2-digit', 
-                hour12: false // 24 horas
+                hour12: false
             }); 
-            // ****************************************************
 
             let newDatasets = [];
 
-            // 1. Gestionar el historial
             activeCols.forEach((col, index) => {
-                // Inicializa el historial si no existe
                 if (!chartDataHistory[col]) {
                     chartDataHistory[col] = {
                         label: col,
@@ -239,11 +244,9 @@
                     };
                 }
 
-                // Obtener nuevo valor y agregarlo
                 const newValue = data[col] !== undefined ? parseFloat(data[col]) : null;
                 chartDataHistory[col].data.push(newValue);
                 
-                // Limitar el número de puntos
                 if (chartDataHistory[col].data.length > MAX_DATA_POINTS) {
                     chartDataHistory[col].data.shift();
                 }
@@ -251,14 +254,12 @@
                 newDatasets.push(chartDataHistory[col]);
             });
 
-            // Limpiar historial de columnas no seleccionadas
             for (const key in chartDataHistory) {
                 if (!activeCols.includes(key)) {
                     delete chartDataHistory[key];
                 }
             }
             
-            // 2. Gestionar etiquetas de tiempo (X-Axis)
             if (!realTimeChart.data.labels) realTimeChart.data.labels = [];
             realTimeChart.data.labels.push(newTimestamp);
 
@@ -266,28 +267,23 @@
                 realTimeChart.data.labels.shift();
             }
 
-            // 3. Actualizar
             realTimeChart.data.datasets = newDatasets;
             realTimeChart.update();
         }
 
-        // 3. Renderiza el gráfico histórico con los datos recibidos
         function renderHistoricalChart(historicalData) {
             const chartContainer = document.getElementById('fs-historical-chart-container');
             const statusDiv = document.getElementById('historical-status');
             
             let requestedCols = [];
-            // Obtenemos las columnas solicitadas desde los checkboxes
             document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
                 requestedCols.push(...chk.dataset.cols.split(','));
             });
             const activeCols = [...new Set(requestedCols)].filter(key => key !== 'Timestamp');
 
-            // 1. Revisar si hay datos
             if (historicalData.length === 0) {
                 statusDiv.textContent = 'No se encontraron datos en el rango seleccionado.';
                 chartContainer.classList.remove('hidden');
-                // Limpiar gráfico si no hay datos
                 if(historicalChart) {
                     historicalChart.data.datasets = [];
                     historicalChart.data.labels = [];
@@ -296,19 +292,15 @@
                 return;
             }
 
-            // Si hay datos, el estado es correcto
             statusDiv.textContent = `Mostrando ${historicalData.length} registros.`;
             chartContainer.classList.remove('hidden');
 
-            // Los labels serán la columna Timestamp (ya viene en formato 24h del backend)
             const labels = historicalData.map(row => row.Timestamp);
             let datasets = [];
 
-            // 2. Crear los Datasets usando solo las columnas activas
             activeCols.forEach((col, index) => {
                 datasets.push({
                     label: col,
-                    // Mapea los datos y convierte a número flotante por seguridad
                     data: historicalData.map(row => parseFloat(row[col])), 
                     borderColor: colorPalette[index % colorPalette.length],
                     backgroundColor: 'transparent',
@@ -317,7 +309,6 @@
                 });
             });
 
-            // 3. Destruir e inicializar con nuevos datos
             if (historicalChart) historicalChart.destroy();
             initializeChart('historicalChart', 'historical');
             
@@ -381,37 +372,54 @@
 
         // --- FUNCIÓN FETCH DATA (HISTÓRICO) ---
         async function fetchHistoricalData() {
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
+            // Obtenemos el valor del campo de texto (ej: 25/11/2025 18:30)
+            const startDateText = document.getElementById('startDate').value;
+            const endDateText = document.getElementById('endDate').value;
             const statusDiv = document.getElementById('historical-status');
             const chartContainer = document.getElementById('fs-historical-chart-container');
             
-            // Validaciones
+            // Función para convertir el formato DD/MM/YYYY HH:MM a YYYY-MM-DDTHH:mm (ISO local)
+            function convertToBackendFormat(textDate) {
+                const parts = textDate.split(' ');
+                if (parts.length !== 2) return null;
+
+                const dateParts = parts[0].split('/');
+                const timeParts = parts[1].split(':');
+
+                if (dateParts.length !== 3 || timeParts.length !== 2) return null;
+
+                // Orden: YYYY-MM-DDTHH:mm
+                // Asegura el orden Año-Mes-Día para que Utilities.parseDate en el backend funcione.
+                return `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}T${timeParts[0]}:${timeParts[1]}`;
+            }
+
+            const startDate = convertToBackendFormat(startDateText);
+            const endDate = convertToBackendFormat(endDateText);
+
             if (!startDate || !endDate) {
-                statusDiv.textContent = 'Por favor, selecciona una fecha y hora de inicio y fin.';
+                statusDiv.textContent = 'Formato de fecha/hora inválido. Use DD/MM/AAAA HH:MM.';
                 chartContainer.classList.remove('hidden');
                 return;
             }
 
-            // Obtener columnas seleccionadas
             let requestedCols = [];
             document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
                 requestedCols.push(...chk.dataset.cols.split(','));
             });
             
             if (requestedCols.length === 0) {
-                statusDiv.textContent = 'Selecciona al menos un parámetro (Voltajes, Corrientes, etc.) para la consulta histórica.';
+                statusDiv.textContent = 'Selecciona al menos un parámetro para la consulta histórica.';
                 chartContainer.classList.remove('hidden');
                 return;
             }
             
-            // Mostrar estado
             statusDiv.textContent = "Consultando datos históricos...";
             chartContainer.classList.remove('hidden');
             
             try {
                 const colsParam = [...new Set(requestedCols)].join(',');
                 
+                // Enviamos las fechas ya en formato ISO (YYYY-MM-DDTHH:mm)
                 const url = `${GAS_WEB_APP_URL}?mode=historical&start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}&colsToQuery=${colsParam}`;
                 
                 const response = await fetch(url, { redirect: 'follow' });
@@ -421,7 +429,7 @@
                     if (Array.isArray(json.data)) {
                         renderHistoricalChart(json.data); 
                     } else {
-                        throw new Error("El servidor no devolvió una lista (array) de datos históricos. Respuesta: " + JSON.stringify(json.data));
+                        throw new Error("El servidor no devolvió una lista (array) de datos históricos.");
                     }
                 } else {
                     throw new Error(json.error || 'Error desconocido en la respuesta del servidor.');
@@ -435,24 +443,18 @@
 
 
         // --- FUNCIONES DE MANIPULACIÓN DE UI ---
-
-        // Actualiza los campos de texto con los valores recibidos
         function updateUI(data) {
             for (const key in data) {
                 const element = document.getElementById(`data-${key}`);
                 if (element) {
-                    // Redondear todos los valores mostrados en la UI a 3 decimales
                     element.textContent = parseFloat(data[key]).toFixed(3);
                 }
             }
         }
 
-        // Muestra/Oculta los fieldsets según los checkboxes
         function toggleFieldsets() {
-            // Ocultar todos por defecto
             document.querySelectorAll('#data-container fieldset').forEach(fs => fs.classList.add('hidden'));
 
-            // Mostrar solo los que están marcados
             document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
                 const fsId = `fs${chk.id.replace('chk', '')}`;
                 const fieldset = document.getElementById(fsId);
@@ -460,7 +462,6 @@
                     fieldset.classList.remove('hidden');
                 }
             });
-            // Reinicializar el historial del gráfico si cambian las selecciones
             chartDataHistory = {};
             if (realTimeChart) {
                 realTimeChart.data.labels = [];
@@ -472,32 +473,26 @@
         // --- INICIALIZACIÓN Y EVENTOS ---
 
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. Inicializar gráfico de tiempo real
             initializeChart('realTimeChart', 'realTime');
             
-            // 2. Event Listeners para Checkboxes
             document.querySelectorAll('input[type="checkbox"]').forEach(chk => {
                 chk.addEventListener('change', toggleFieldsets);
             });
 
-            // 3. Event Listener para el botón histórico
             document.getElementById('fetchHistoricalBtn').addEventListener('click', fetchHistoricalData);
 
-            // 4. Iniciar la consulta periódica (cada 5 segundos)
             fetchData();
-            setInterval(fetchData, 5000); // Consulta cada 5 segundos
+            setInterval(fetchData, 5000);
 
-            // 5. Inicializar la hora de fin con la hora actual y la de inicio 24h antes
+            // Inicializar la hora de fin con la hora actual y la de inicio 24h antes
             const now = new Date();
-            const offset = now.getTimezoneOffset() * 60000;
-            // Usamos una función para obtener el string ISO local (sin Z o zona horaria)
-            const getLocalIso = (date) => (new Date(date.getTime() - offset)).toISOString().slice(0, 16);
             
-            document.getElementById('endDate').value = getLocalIso(now);
+            // Hora de fin (Ahora)
+            document.getElementById('endDate').value = getFormattedDate(now);
             
             // Hora de inicio: 24 horas antes
             const start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-            document.getElementById('startDate').value = getLocalIso(start);
+            document.getElementById('startDate').value = getFormattedDate(start);
         });
     </script>
 
