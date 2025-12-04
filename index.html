@@ -363,7 +363,11 @@
                 isFetching = false;
             }
         }
-
+console.log('Consulta histórico:', {
+  startDate,
+  endDate,
+  url
+});
         // ---------- FETCH HISTÓRICO (CORREGIDO) ----------
         async function fetchHistoricalData() {
             const startDateText = document.getElementById('startDate').value.trim();
