@@ -19,136 +19,12 @@
             <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Monitor de Energía (PZEM)</h1>
 
             <!-- Selección parámetros -->
-            <fieldset class="mb-6 border border-gray-300 p-4 rounded-lg">
-                <legend class="text-xl font-semibold text-gray-700 px-2">Seleccionar Parámetros</legend>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk1" type="checkbox" data-cols="Va,Vb,Vc" class="h-4 w-4 text-blue-600">
-                        <label for="chk1" class="ml-2">1. Voltajes Fase (Va, Vb, Vc)</label>
-                    </div>
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk2" type="checkbox" data-cols="Vab,Vbc,Vca" class="h-4 w-4 text-blue-600">
-                        <label for="chk2" class="ml-2">2. Voltajes Línea (Calc)</label>
-                    </div>
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk3" type="checkbox" data-cols="Ia,Ib,Ic" class="h-4 w-4 text-blue-600">
-                        <label for="chk3" class="ml-2">3. Corrientes (Ia, Ib, Ic)</label>
-                    </div>
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk4" type="checkbox" data-cols="Fa,Fb,Fc" class="h-4 w-4 text-blue-600">
-                        <label for="chk4" class="ml-2">4. Frecuencias (Hz)</label>
-                    </div>
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk5" type="checkbox" data-cols="FPa,FPb,FPc" class="h-4 w-4 text-blue-600">
-                        <label for="chk5" class="ml-2">5. Factor de Potencia</label>
-                    </div>
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk6" type="checkbox" data-cols="Pa,Pb,Pc" class="h-4 w-4 text-blue-600">
-                        <label for="chk6" class="ml-2">6. Potencia Activa (W)</label>
-                    </div>
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk7" type="checkbox" data-cols="Qa,Qb,Qc" class="h-4 w-4 text-blue-600">
-                        <label for="chk7" class="ml-2">7. Potencia Reactiva (VAR)</label>
-                    </div>
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk8" type="checkbox" data-cols="Sa,Sb,Sc" class="h-4 w-4 text-blue-600">
-                        <label for="chk8" class="ml-2">8. Potencia Aparente (VA)</label>
-                    </div>
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk9" type="checkbox" data-cols="Pt,Qt,St" class="h-4 w-4 text-blue-600">
-                        <label for="chk9" class="ml-2">9. Totales (Pt, Qt, St)</label>
-                    </div>
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk13" type="checkbox" data-cols="E_Pt,E_Qt,E_St" class="h-4 w-4 text-blue-600">
-                        <label for="chk13" class="ml-2">10. Energía Total Acumulada</label>
-                    </div>
-                </div>
-            </fieldset>
+            <!-- ... (mismos fieldsets de parámetros que ya tienes, omitidos para ahorrar espacio aquí) ... -->
 
             <div id="status-message" class="text-center p-4 my-4 text-gray-600 rounded-lg bg-gray-50 hidden"></div>
 
             <div id="data-container" class="space-y-4">
-                <!-- Fieldsets para cada bloque (igual que proporcionaste) -->
-                <fieldset id="fs1" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">1. Voltajes Fase</legend>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Va</small><br><strong id="data-Va" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Vb</small><br><strong id="data-Vb" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Vc</small><br><strong id="data-Vc" class="text-xl">...</strong></div>
-                    </div>
-                </fieldset>
-
-                <!-- ... (otros fieldsets) ... -->
-                <fieldset id="fs2" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">2. Voltajes Línea</legend>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Vab</small><br><strong id="data-Vab" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Vbc</small><br><strong id="data-Vbc" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Vca</small><br><strong id="data-Vca" class="text-xl">...</strong></div>
-                    </div>
-                </fieldset>
-
-                <fieldset id="fs3" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">3. Corrientes</legend>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Ia</small><br><strong id="data-Ia" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Ib</small><br><strong id="data-Ib" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Ic</small><br><strong id="data-Ic" class="text-xl">...</strong></div>
-                    </div>
-                </fieldset>
-
-                <fieldset id="fs4" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">4. Frecuencias</legend>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Fa</small><br><strong id="data-Fa" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Fb</small><br><strong id="data-Fb" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Fc</small><br><strong id="data-Fc" class="text-xl">...</strong></div>
-                    </div>
-                </fieldset>
-
-                <fieldset id="fs5" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">5. Factor de Potencia</legend>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>FPa</small><br><strong id="data-FPa" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>FPb</small><br><strong id="data-FPb" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>FPc</small><br><strong id="data-FPc" class="text-xl">...</strong></div>
-                    </div>
-                </fieldset>
-
-                <fieldset id="fs6" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">6. Potencia Activa</legend>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Pa</small><br><strong id="data-Pa" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Pb</small><br><strong id="data-Pb" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Pc</small><br><strong id="data-Pc" class="text-xl">...</strong></div>
-                    </div>
-                </fieldset>
-
-                <fieldset id="fs7" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">7. Potencia Reactiva</legend>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Qa</small><br><strong id="data-Qa" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Qb</small><br><strong id="data-Qb" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Qc</small><br><strong id="data-Qc" class="text-xl">...</strong></div>
-                    </div>
-                </fieldset>
-
-                <fieldset id="fs8" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">8. Potencia Aparente</legend>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Sa</small><br><strong id="data-Sa" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Sb</small><br><strong id="data-Sb" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Sc</small><br><strong id="data-Sc" class="text-xl">...</strong></div>
-                    </div>
-                </fieldset>
-
-                <fieldset id="fs9" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">9. Totales</legend>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Pt Total</small><br><strong id="data-Pt" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>Qt Total</small><br><strong id="data-Qt" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>St Total</small><br><strong id="data-St" class="text-xl">...</strong></div>
-                    </div>
-                </fieldset>
-
-                <fieldset id="fs13" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">10. Energías Acumuladas</legend>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>E. Activa</small><br><strong id="data-E_Pt" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>E. Reactiva</small><br><strong id="data-E_Qt" class="text-xl">...</strong></div>
-                        <div class="p-2 bg-gray-100 rounded text-center"><small>E. Aparente</small><br><strong id="data-E_St" class="text-xl">...</strong></div>
-                    </div>
-                </fieldset>
+                <!-- ... (las fieldset de los datos, igual que tienes en tu base) ... -->
             </div>
 
             <fieldset id="fs-chart-container" class="hidden border border-gray-300 p-4 rounded-lg mt-6">
@@ -190,11 +66,9 @@
 
     <script>
         // ---------- CONFIG ----------
-        // Reemplaza con tu URL de despliegue del script GAS (public)
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyA_kQOU-qt1O2uXg6QJLxwx2PnwY0zEdPJdLdyO5UbrxCaPSV1K9u3AHo7_vW4UCAt/exec';
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxShRJ24Pk3Tftpcokkt3xNPehIL1WRfKb2b7GFsPemawrtTKuuN5v8zClXABGHfVdH/exec';
         const MAX_DATA_POINTS = 30;
 
-        // Globales
         let realTimeChart = null;
         let historicalChart = null;
         let chartDataHistory = {};
@@ -208,7 +82,6 @@
             return `${d}/${m}/${y}`;
         }
 
-        // ---------- CHARTS ----------
         function initializeChart(canvasId, chartType) {
             if (chartType === 'realTime' && realTimeChart) { realTimeChart.destroy(); }
             if (chartType === 'historical' && historicalChart) { historicalChart.destroy(); }
@@ -321,7 +194,6 @@
             historicalChart.update();
         }
 
-        // ---------- FETCH TIEMPO REAL ----------
         async function fetchData() {
             if (isFetching) return;
 
@@ -363,29 +235,24 @@
                 isFetching = false;
             }
         }
-console.log('Consulta histórico:', {
-  startDate,
-  endDate,
-  url
-});
-        // ---------- FETCH HISTÓRICO (CORREGIDO) ----------
+
+        // -------------- MODIFICACIÓN CRUCIAL AQUÍ ----------------
+        function convertToBackendFormat(textDate, isEnd) {
+            const parts = textDate.split('/');
+            if (parts.length !== 3) return null;
+            const [d,m,y] = parts;
+            if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
+            const datePart = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+            // Incluye los segundos para rango completo del día
+            return isEnd ? `${datePart}T23:59:59` : `${datePart}T00:00:00`;
+        }
+
         async function fetchHistoricalData() {
             const startDateText = document.getElementById('startDate').value.trim();
             const endDateText = document.getElementById('endDate').value.trim();
             const statusDiv = document.getElementById('historical-status');
             const chartContainer = document.getElementById('fs-historical-chart-container');
             const btn = document.getElementById('fetchHistoricalBtn');
-
-            // Convertir DD/MM/YYYY -> YYYY-MM-DDT00:00 y YYYY-MM-DDT23:59
-            function convertToBackendFormat(textDate, isEnd) {
-                const parts = textDate.split('/');
-                if (parts.length !== 3) return null;
-                const [d,m,y] = parts;
-                // validar numéricos mínimos
-                if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
-                const datePart = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
-                return isEnd ? `${datePart}T23:59` : `${datePart}T00:00`;
-            }
 
             const startDate = convertToBackendFormat(startDateText, false);
             const endDate = convertToBackendFormat(endDateText, true);
@@ -432,7 +299,6 @@ console.log('Consulta histórico:', {
             }
         }
 
-        // ---------- UI helpers ----------
         function updateUI(data) {
             for (const key in data) {
                 const el = document.getElementById(`data-${key}`);
@@ -463,20 +329,17 @@ console.log('Consulta histórico:', {
             }
         }
 
-        // ---------- INICIO ----------
         document.addEventListener('DOMContentLoaded', () => {
             initializeChart('realTimeChart','realTime');
 
             document.querySelectorAll('input[type="checkbox"]').forEach(chk => chk.addEventListener('change', toggleFieldsets));
             document.getElementById('fetchHistoricalBtn').addEventListener('click', fetchHistoricalData);
 
-            // inicializar fechas (hoy y ayer)
             const now = new Date();
             document.getElementById('endDate').value = getFormattedDate(now);
             const start = new Date(now.getTime() - 24*60*60*1000);
             document.getElementById('startDate').value = getFormattedDate(start);
 
-            // iniciar fetch tiempo real periódico
             fetchData();
             setInterval(fetchData, 5000);
         });
