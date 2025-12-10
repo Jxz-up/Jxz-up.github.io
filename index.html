@@ -370,7 +370,7 @@
             }
         }
 
-        // --- FUNCIÓN FETCH DATA (HISTÓRICO) - MODIFICADA ---
+        // --- FUNCIÓN FETCH DATA (HISTÓRICO) - ¡CORRECCIÓN APLICADA AQUÍ! ---
         async function fetchHistoricalData() {
             // Obtenemos el valor del campo de texto (ej: 25/11/2025)
             const startDateText = document.getElementById('startDate').value;
@@ -378,7 +378,7 @@
             const statusDiv = document.getElementById('historical-status');
             const chartContainer = document.getElementById('fs-historical-chart-container');
             
-            // Función para convertir el formato DD/MM/AAAA a YYYY-MM-DDTHH:mm
+            // Función para convertir el formato DD/MM/AAAA a YYYY-MM-DDTHH:mm:ss
             function convertToBackendFormat(textDate, isEnd) {
                 const dateParts = textDate.split('/');
 
@@ -387,13 +387,13 @@
                 // Orden: YYYY-MM-DD
                 const datePart = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
                 
-                // Si es la fecha de inicio, la hora es 00:00 (inicio del día)
+                // Si es la fecha de inicio, la hora es 00:00:00 (inicio del día)
                 if (!isEnd) {
-                    return `${datePart}T00:00`;
+                    return `${datePart}T00:00:00`; // <<<--- CAMBIO: Se agregó :00 para cumplir el formato GAS
                 } 
-                // Si es la fecha de fin, la hora es 23:59 (fin del día)
+                // Si es la fecha de fin, la hora es 23:59:59 (fin del día, para incluir todos los registros)
                 else {
-                    return `${datePart}T23:59`;
+                    return `${datePart}T23:59:59`; // <<<--- CAMBIO: Se agregó :59 para cumplir el formato GAS
                 }
             }
 
@@ -423,7 +423,7 @@
             try {
                 const colsParam = [...new Set(requestedCols)].join(',');
                 
-                // Enviamos las fechas con la hora forzada
+                // Enviamos las fechas con la hora y segundos forzados
                 const url = `${GAS_WEB_APP_URL}?mode=historical&start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}&colsToQuery=${colsParam}`;
                 
                 const response = await fetch(url, { redirect: 'follow' });
@@ -436,69 +436,18 @@
                         throw new Error("El servidor no devolvió una lista (array) de datos históricos.");
                     }
                 } else {
-                    throw new Error(json.error || 'Error desconocido en la respuesta del servidor.');
+                    statusDiv.textContent = `Error: ${json.error}`;
+                    throw new Error(json.error || 'Error desconocido');
                 }
             } catch (error) {
-                console.error("Error Histórico:", error); 
-                statusDiv.textContent = "Error: Fallo al consultar el historial. Revisa la consola.";
-            }
-            document.getElementById('fetchHistoricalBtn').disabled = false;
-        }
-
-
-        // --- FUNCIONES DE MANIPULACIÓN DE UI (SIN CAMBIOS) ---
-        function updateUI(data) {
-            for (const key in data) {
-                const element = document.getElementById(`data-${key}`);
-                if (element) {
-                    element.textContent = parseFloat(data[key]).toFixed(3);
-                }
+                console.error("Error Histórico:", error);
+                statusDiv.textContent = `Error de conexión o en el servidor: ${error.message}`;
             }
         }
-
-        function toggleFieldsets() {
-            document.querySelectorAll('#data-container fieldset').forEach(fs => fs.classList.add('hidden'));
-
-            document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
-                const fsId = `fs${chk.id.replace('chk', '')}`;
-                const fieldset = document.getElementById(fsId);
-                if (fieldset) {
-                    fieldset.classList.remove('hidden');
-                }
-            });
-            chartDataHistory = {};
-            if (realTimeChart) {
-                realTimeChart.data.labels = [];
-                realTimeChart.data.datasets = [];
-                realTimeChart.update();
-            }
-        }
-
-        // --- INICIALIZACIÓN Y EVENTOS ---
-
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeChart('realTimeChart', 'realTime');
-            
-            document.querySelectorAll('input[type="checkbox"]').forEach(chk => {
-                chk.addEventListener('change', toggleFieldsets);
-            });
-
-            document.getElementById('fetchHistoricalBtn').addEventListener('click', fetchHistoricalData);
-
-            fetchData();
-            setInterval(fetchData, 5000);
-
-            // Inicializar la hora de fin con la fecha actual y la de inicio con el día anterior
-            const now = new Date();
-            
-            // Fecha de fin (Hoy)
-            document.getElementById('endDate').value = getFormattedDate(now);
-            
-            // Fecha de inicio: 1 día antes
-            const start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-            document.getElementById('startDate').value = getFormattedDate(start);
-        });
+        // ... (resto de funciones y listeners)
     </script>
+</body>
+</html>
 
 </body>
 </html>
