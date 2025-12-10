@@ -93,7 +93,164 @@
                 <fieldset id="fs6" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">6. Potencia Activa</legend>
                     <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Pa</small><br><strong id="data-Pa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Pb</small><br><strong id="data-Pb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Pc</small><br><strong id="data-Pc" class="text-xl">...</strong></div></div>
                 </fieldset>
-                
+                <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Datos PZEM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
+        <div class="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+            
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
+                Monitor de Energía (PZEM)
+            </h1>
+
+            <fieldset class="mb-6 border border-gray-300 p-4 rounded-lg">
+                <legend class="text-xl font-semibold text-gray-700 px-2">Seleccionar Parámetros</legend>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+                    
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk1" type="checkbox" data-cols="Va,Vb,Vc" class="h-4 w-4 text-blue-600">
+                        <label for="chk1" class="ml-2">1. Voltajes Fase (Va, Vb, Vc)</label>
+                    </div>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk2" type="checkbox" data-cols="Vab,Vbc,Vca" class="h-4 w-4 text-blue-600">
+                        <label for="chk2" class="ml-2">2. Voltajes Línea (Calc)</label>
+                    </div>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk3" type="checkbox" data-cols="Ia,Ib,Ic" class="h-4 w-4 text-blue-600">
+                        <label for="chk3" class="ml-2">3. Corrientes (Ia, Ib, Ic)</label>
+                    </div>
+                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk4" type="checkbox" data-cols="Fa,Fb,Fc" class="h-4 w-4 text-blue-600">
+                        <label for="chk4" class="ml-2">4. Frecuencias (Hz)</label>
+                    </div>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk5" type="checkbox" data-cols="FPa,FPb,FPc" class="h-4 w-4 text-blue-600">
+                        <label for="chk5" class="ml-2">5. Factor de Potencia</label>
+                    </div>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk6" type="checkbox" data-cols="Pa,Pb,Pc" class="h-4 w-4 text-blue-600">
+                        <label for="chk6" class="ml-2">6. Potencia Activa (W)</label>
+                    </div>
+                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk7" type="checkbox" data-cols="Qa,Qb,Qc" class="h-4 w-4 text-blue-600">
+                        <label for="chk7" class="ml-2">7. Potencia Reactiva (VAR)</label>
+                    </div>
+                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk8" type="checkbox" data-cols="Sa,Sb,Sc" class="h-4 w-4 text-blue-600">
+                        <label for="chk8" class="ml-2">8. Potencia Aparente (VA)</label>
+                    </div>
+                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk9" type="checkbox" data-cols="Pt,Qt,St" class="h-4 w-4 text-blue-600">
+                        <label for="chk9" class="ml-2">9. Totales (Pt, Qt, St)</label>
+                    </div>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk13" type="checkbox" data-cols="E_Pt,E_Qt,E_St" class="h-4 w-4 text-blue-600">
+                        <label for="chk13" class="ml-2">10. Energía Total Acumulada</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div id="status-message" class="text-center p-4 my-4 text-gray-600 rounded-lg bg-gray-50 hidden"></div>
+
+            <div id="data-container" class="space-y-4">
+
+                <!-- TODO: CAMPOS, IGUAL A LO QUE YA ENVIASTE -->
+                <!-- (No lo repito aquí por espacio, pero ya lo tienes en tu código original.) -->
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        const GAS_WEB_APP_URL = 'PEGAR_AQUI_TU_URL_WEBAPP';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 13];
+            
+            ids.forEach(id => {
+                const chk = document.getElementById('chk' + id);
+                const fs = document.getElementById('fs' + id);
+                if(chk && fs) {
+                    chk.addEventListener('change', () => {
+                        fs.classList.toggle('hidden', !chk.checked);
+                        fetchData(); 
+                    });
+                }
+            });
+
+            fetchData();
+            setInterval(fetchData, 5000);
+        });
+
+        let isFetching = false;
+
+        async function fetchData() {
+            if (isFetching) return;
+
+            let requestedCols = [];
+            document.querySelectorAll('input[type="checkbox"]:checked')
+                .forEach(chk => requestedCols.push(...chk.dataset.cols.split(',')));
+
+            const statusDiv = document.getElementById('status-message');
+            
+            if (requestedCols.length === 0) {
+                statusDiv.classList.add('hidden');
+                return;
+            }
+
+            isFetching = true;
+            statusDiv.textContent = "Actualizando...";
+            statusDiv.classList.remove('hidden');
+
+            try {
+
+                const colsParam = [...new Set(requestedCols)].join(',');
+                const url = `${GAS_WEB_APP_URL}?colsToQuery=${colsParam}`;
+
+                const response = await fetch(url);
+                const json = await response.json();
+
+                if (json.status === 'success') {
+                    updateUI(json.data);
+                } else {
+                    throw new Error(json.error);
+                }
+
+            } catch (error) {
+                statusDiv.textContent = "Error al conectar con el servidor.";
+            }
+
+            isFetching = false;
+        }
+
+        function updateUI(data) {
+            for (const key in data) {
+                const el = document.getElementById(`data-${key}`);
+                if (el) {
+                    let val = data[key];
+                    if (typeof val === 'number') val = val.toFixed(2);
+                    el.textContent = val;
+                }
+            }
+        }
+
+    </script>
+</body>
+</html>
+
                  <fieldset id="fs7" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">7. Potencia Reactiva</legend>
                     <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Qa</small><br><strong id="data-Qa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Qb</small><br><strong id="data-Qb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Qc</small><br><strong id="data-Qc" class="text-xl">...</strong></div></div>
                 </fieldset>
