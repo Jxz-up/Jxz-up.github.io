@@ -1,343 +1,214 @@
-/**
-
- * BACKEND: Script para manejar lecturas del PZEM (escritura) y visualización Web (lectura).
-
- * Deploy: Desplegar como Aplicación Web (Anyone, even anonymous) o con la seguridad que requieras.
-
- */
-
-
-
-function doGet(e) {
-
-  // Si viene colsToQuery es una petición de lectura (frontend).
-
-  if (e.parameter && e.parameter.colsToQuery) {
-
-    return handleRead(e);
-
-  } else {
-
-    // Si no, considerar como escritura simple (puede venir del ESP32 con parámetros).
-
-    return handleWrite(e);
-
-  }
-
-}
-
-
-
-// ----------------- Escritura (ESP32 u otro) -----------------
-
-function handleWrite(e) {
-
-  try {
-
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-
-    var sheet = ss.getSheetByName("LECTURAS PZEM");
-
-   
-
-    if (!sheet) {
-
-      sheet = ss.insertSheet("LECTURAS PZEM");
-
-      var headers = [
-
-        "Fecha/Hora",
-
-        "V_A","V_B","V_C",
-
-        "I_A","I_B","I_C",
-
-        "F_A","F_B","F_C",
-
-        "P_Act_A","P_Act_B","P_Act_C",
-
-        "P_Rea_A","P_Rea_B","P_Rea_C",
-
-        "P_App_A","P_App_B","P_App_C",
-
-        "FP_A","FP_B","FP_C",
-
-        "P_Total","Q_Total","S_Total","FP_Total",
-
-        "E_Act_Total","E_Rea_Total","E_App_Total"
-
-      ];
-
-      sheet.appendRow(headers);
-
-      sheet.getRange(1,1,1,headers.length).setFontWeight("bold").setBackground("#c9daf8");
-
-    }
-
-
-
-    var p = e.parameter || {};
-
-    var getVal = function(key) {
-
-      if (p[key] === undefined || p[key] === null || p[key] === "") return 0;
-
-      var v = Number(p[key]);
-
-      return isNaN(v) ? p[key] : v;
-
-    };
-
-
-
-    var row = [ new Date() ];
-
-    // En el frontend/ESP32 usa los nombres de parámetro que tu firmware envía.
-
-    // Ejemplo de keys asumidas: vA,vB,vC,cA,cB,cC,fA,fB,fC,pActA,pActB,pActC,pReaA,pReaB,pReaC,pAppA,pAppB,pAppC,pfA,pfB,pfC,Ptotal,Qtotal,Stotal,PFtotal,Eact,Erea,Eapp
-
-    row.push(getVal('vA'), getVal('vB'), getVal('vC'));
-
-    row.push(getVal('cA'), getVal('cB'), getVal('cC'));
-
-    row.push(getVal('fA'), getVal('fB'), getVal('fC'));
-
-    row.push(getVal('pActA'), getVal('pActB'), getVal('pActC'));
-
-    row.push(getVal('pReaA'), getVal('pReaB'), getVal('pReaC'));
-
-    row.push(getVal('pAppA'), getVal('pAppB'), getVal('pAppC'));
-
-    row.push(getVal('pfA'), getVal('pfB'), getVal('pfC'));
-
-    row.push(getVal('Ptotal'), getVal('Qtotal'), getVal('Stotal'), getVal('PFtotal'));
-
-    row.push(getVal('Eact'), getVal('Erea'), getVal('Eapp'));
-
-
-
-    sheet.appendRow(row);
-
-
-
-    return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'Dato guardado correctamente.' }))
-
-        .setMimeType(ContentService.MimeType.JSON);
-
-  } catch (err) {
-
-    return ContentService.createTextOutput(JSON.stringify({ status: 'error', error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
-
-  }
-
-}
-
-
-
-// ----------------- Lectura (Frontend) -----------------
-
-function handleRead(e) {
-
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-
-  var sheet = ss.getSheetByName("LECTURAS PZEM");
-
-
-
-  if (!sheet || sheet.getLastRow() < 2) {
-
-    return jsonResponse({ status: 'error', error: 'No hay datos en la hoja.' });
-
-  }
-
-
-
-  var mode = (e.parameter.mode || 'realtime');
-
-
-
-  // Mapa de índices 0-based sobre el array row obtenido de getValues()
-
-  var map = {
-
-    'Va': 1, 'Vb': 2, 'Vc': 3,
-
-    'Ia': 4, 'Ib': 5, 'Ic': 6,
-
-    'Fa': 7, 'Fb': 8, 'Fc': 9,
-
-    'Pa': 10, 'Pb': 11, 'Pc': 12,
-
-    'Qa': 13, 'Qb': 14, 'Qc': 15,
-
-    'Sa': 16, 'Sb': 17, 'Sc': 18,
-
-    'FPa': 19, 'FPb': 20, 'FPc': 21,
-
-    'Pt': 22, 'Qt': 23, 'St': 24,
-
-    'E_Pt': 26, 'E_Qt': 27, 'E_St': 28
-
-  };
-
-
-
-  if (mode === 'realtime') {
-
-    return handleRealTimeRead(sheet, map, e.parameter.colsToQuery);
-
-  } else if (mode === 'historical' && e.parameter.start && e.parameter.end) {
-
-    return handleHistoricalRead(sheet, map, e.parameter.colsToQuery, e.parameter.start, e.parameter.end);
-
-  } else {
-
-    return jsonResponse({ status: 'error', error: 'Modo de lectura no válido o parámetros de fecha faltantes.' });
-
-  }
-
-}
-
-
-
-function handleRealTimeRead(sheet, map, colsToQuery) {
-
-  try {
-
-    var lastRowIdx = sheet.getLastRow();
-
-    var data = sheet.getRange(lastRowIdx, 1, 1, sheet.getLastColumn()).getValues()[0];
-
-    var requestedKeys = colsToQuery.split(',');
-
-    var responseData = {};
-
-
-
-    requestedKeys.forEach(function(key){
-
-      var val = processDataPoint(key, data, map);
-
-      if (val !== undefined) responseData[key] = val;
-
-    });
-
-
-
-    return jsonResponse({ status: 'success', lastRow: lastRowIdx, data: responseData });
-
-  } catch (err) {
-
-    return jsonResponse({ status: 'error', error: err.toString() });
-
-  }
-
-}
-
-
-
-function handleHistoricalRead(sheet, map, colsToQuery, startDateStr, endDateStr) {
-
-  try {
-
-    var ssTimeZone = SpreadsheetApp.getActive().getSpreadsheetTimeZone();
-
-
-
-    // ------ MODIFICACIÓN Aquí: INCLUYE segundos en formato ------
-
-    var startDate = Utilities.parseDate(startDateStr, ssTimeZone, "yyyy-MM-dd'T'HH:mm:ss");
-
-    var endDate = Utilities.parseDate(endDateStr, ssTimeZone, "yyyy-MM-dd'T'HH:mm:ss");
-
-    // ------------------------------------------------------------
-
-
-
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-
-      return jsonResponse({ status: 'error', error: 'Formato de fecha/hora inválido.' });
-
-    }
-
-
-
-    var values = sheet.getDataRange().getValues();
-
-    var rawData = values.slice(1); // excluir header
-
-    var requestedKeys = colsToQuery.split(',');
-
-    var historicalData = [];
-
-
-
-    rawData.forEach(function(row) {
-
-      var timestamp = row[0]; // columna A
-
-      if (timestamp instanceof Date && timestamp >= startDate && timestamp <= endDate) {
-
-        var rowObject = {};
-
-        rowObject['Timestamp'] = Utilities.formatDate(timestamp, ssTimeZone, "dd/MM HH:mm");
-
-        requestedKeys.forEach(function(key) {
-
-          var val = processDataPoint(key, row, map);
-
-          if (val !== undefined) rowObject[key] = val;
-
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Datos PZEM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
+        <div class="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+            
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
+                Monitor de Energía (PZEM)
+            </h1>
+
+            <fieldset class="mb-6 border border-gray-300 p-4 rounded-lg">
+                <legend class="text-xl font-semibold text-gray-700 px-2">Seleccionar Parámetros</legend>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+                    
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk1" type="checkbox" data-cols="Va,Vb,Vc" class="h-4 w-4 text-blue-600">
+                        <label for="chk1" class="ml-2">1. Voltajes Fase (Va, Vb, Vc)</label>
+                    </div>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk2" type="checkbox" data-cols="Vab,Vbc,Vca" class="h-4 w-4 text-blue-600">
+                        <label for="chk2" class="ml-2">2. Voltajes Línea (Calc)</label>
+                    </div>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk3" type="checkbox" data-cols="Ia,Ib,Ic" class="h-4 w-4 text-blue-600">
+                        <label for="chk3" class="ml-2">3. Corrientes (Ia, Ib, Ic)</label>
+                    </div>
+                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk4" type="checkbox" data-cols="Fa,Fb,Fc" class="h-4 w-4 text-blue-600">
+                        <label for="chk4" class="ml-2">4. Frecuencias (Hz)</label>
+                    </div>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk5" type="checkbox" data-cols="FPa,FPb,FPc" class="h-4 w-4 text-blue-600">
+                        <label for="chk5" class="ml-2">5. Factor de Potencia</label>
+                    </div>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk6" type="checkbox" data-cols="Pa,Pb,Pc" class="h-4 w-4 text-blue-600">
+                        <label for="chk6" class="ml-2">6. Potencia Activa (W)</label>
+                    </div>
+                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk7" type="checkbox" data-cols="Qa,Qb,Qc" class="h-4 w-4 text-blue-600">
+                        <label for="chk7" class="ml-2">7. Potencia Reactiva (VAR)</label>
+                    </div>
+                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk8" type="checkbox" data-cols="Sa,Sb,Sc" class="h-4 w-4 text-blue-600">
+                        <label for="chk8" class="ml-2">8. Potencia Aparente (VA)</label>
+                    </div>
+                     <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk9" type="checkbox" data-cols="Pt,Qt,St" class="h-4 w-4 text-blue-600">
+                        <label for="chk9" class="ml-2">9. Totales (Pt, Qt, St)</label>
+                    </div>
+                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                        <input id="chk13" type="checkbox" data-cols="E_Pt,E_Qt,E_St" class="h-4 w-4 text-blue-600">
+                        <label for="chk13" class="ml-2">10. Energía Total Acumulada</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div id="status-message" class="text-center p-4 my-4 text-gray-600 rounded-lg bg-gray-50 hidden"></div>
+
+            <div id="data-container" class="space-y-4">
+                <fieldset id="fs1" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">1. Voltajes Fase</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Va</small><br><strong id="data-Va" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Vb</small><br><strong id="data-Vb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Vc</small><br><strong id="data-Vc" class="text-xl">...</strong></div></div>
+                </fieldset>
+
+                <fieldset id="fs2" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">2. Voltajes Línea</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Vab</small><br><strong id="data-Vab" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Vbc</small><br><strong id="data-Vbc" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Vca</small><br><strong id="data-Vca" class="text-xl">...</strong></div></div>
+                </fieldset>
+
+                <fieldset id="fs3" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">3. Corrientes</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Ia</small><br><strong id="data-Ia" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Ib</small><br><strong id="data-Ib" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Ic</small><br><strong id="data-Ic" class="text-xl">...</strong></div></div>
+                </fieldset>
+
+                <fieldset id="fs4" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">4. Frecuencias</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Fa</small><br><strong id="data-Fa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Fb</small><br><strong id="data-Fb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Fc</small><br><strong id="data-Fc" class="text-xl">...</strong></div></div>
+                </fieldset>
+
+                <fieldset id="fs5" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">5. Factor de Potencia</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>FPa</small><br><strong id="data-FPa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>FPb</small><br><strong id="data-FPb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>FPc</small><br><strong id="data-FPc" class="text-xl">...</strong></div></div>
+                </fieldset>
+
+                <fieldset id="fs6" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">6. Potencia Activa</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Pa</small><br><strong id="data-Pa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Pb</small><br><strong id="data-Pb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Pc</small><br><strong id="data-Pc" class="text-xl">...</strong></div></div>
+                </fieldset>
+                
+                 <fieldset id="fs7" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">7. Potencia Reactiva</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Qa</small><br><strong id="data-Qa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Qb</small><br><strong id="data-Qb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Qc</small><br><strong id="data-Qc" class="text-xl">...</strong></div></div>
+                </fieldset>
+
+                 <fieldset id="fs8" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">8. Potencia Aparente</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Sa</small><br><strong id="data-Sa" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Sb</small><br><strong id="data-Sb" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Sc</small><br><strong id="data-Sc" class="text-xl">...</strong></div></div>
+                </fieldset>
+
+                <fieldset id="fs9" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">9. Totales</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>Pt Total</small><br><strong id="data-Pt" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>Qt Total</small><br><strong id="data-Qt" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>St Total</small><br><strong id="data-St" class="text-xl">...</strong></div></div>
+                </fieldset>
+
+                <fieldset id="fs13" class="hidden border border-gray-300 p-4 rounded-lg"><legend class="text-blue-700 font-bold">10. Energías Acumuladas</legend>
+                    <div class="grid grid-cols-3 gap-4"><div class="p-2 bg-gray-100 rounded text-center"><small>E. Activa</small><br><strong id="data-E_Pt" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>E. Reactiva</small><br><strong id="data-E_Qt" class="text-xl">...</strong></div><div class="p-2 bg-gray-100 rounded text-center"><small>E. Aparente</small><br><strong id="data-E_St" class="text-xl">...</strong></div></div>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN ---
+        // ¡¡PEGA AQUÍ TU NUEVA URL DESPUÉS DE LA NUEVA IMPLEMENTACIÓN!!
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw4LQiQz54XQnOa7efHSc4MtAMlS8BySC0kfGqDedYAjkHv_pKdTTLkYnGBCN9HQkvK/exec'; 
+
+        // --- LÓGICA ---
+        document.addEventListener('DOMContentLoaded', function() {
+            // IDs de checkboxes activos
+            const ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 13];
+            
+            ids.forEach(id => {
+                const chk = document.getElementById('chk' + id);
+                const fs = document.getElementById('fs' + id);
+                if(chk && fs) {
+                    chk.addEventListener('change', () => {
+                        fs.classList.toggle('hidden', !chk.checked);
+                        fetchData(); // Actualiza al marcar/desmarcar
+                    });
+                }
+            });
+
+            // Refresco inicial y periódico
+            fetchData();
+            setInterval(fetchData, 5000);
         });
 
-        historicalData.push(rowObject);
+        let isFetching = false;
 
-      }
+        async function fetchData() {
+            if (isFetching) return;
 
-    });
+            // Verificamos qué checkboxes están marcados
+            let requestedCols = [];
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
+                requestedCols.push(...chk.dataset.cols.split(','));
+            });
 
+            const statusDiv = document.getElementById('status-message');
+            
+            if (requestedCols.length === 0) {
+                statusDiv.classList.add('hidden');
+                return;
+            }
 
+            isFetching = true;
+            statusDiv.textContent = "Actualizando...";
+            statusDiv.classList.remove('hidden', 'text-red-600', 'bg-red-100');
+            statusDiv.classList.add('bg-gray-50', 'text-gray-600');
+            
+            try {
+                // Eliminar duplicados y unir para la URL
+                const colsParam = [...new Set(requestedCols)].join(',');
+                const url = `${GAS_WEB_APP_URL}?colsToQuery=${colsParam}`;
 
-    return jsonResponse({ status: 'success', data: historicalData });
+                // Fetch con redirect: 'follow' por si acaso
+                const response = await fetch(url, { redirect: 'follow' });
+                const json = await response.json();
 
-  } catch (err) {
+                if (json.status === 'success') {
+                    updateUI(json.data);
+                    statusDiv.textContent = `Actualizado correctamente (Último registro: Fila ${json.lastRow})`;
+                    // Ocultar mensaje después de 2 seg
+                    setTimeout(() => {
+                         if(!isFetching) statusDiv.classList.add('hidden'); 
+                    }, 2000);
+                } else {
+                    throw new Error(json.error || 'Error desconocido');
+                }
+            } catch (error) {
+                console.error(error);
+                statusDiv.textContent = "Error al conectar con la hoja de cálculo.";
+                statusDiv.classList.remove('text-gray-600', 'bg-gray-50');
+                statusDiv.classList.add('text-red-600', 'bg-red-100');
+            } finally {
+                isFetching = false;
+            }
+        }
 
-    return jsonResponse({ status: 'error', error: err.toString() });
-
-  }
-
-}
-
-
-
-function processDataPoint(key, rowData, map) {
-
-  if (map[key] !== undefined) {
-
-    return rowData[map[key]];
-
-  } else if (key === 'Vab') {
-
-    return (rowData[1] !== undefined && rowData[1] !== '' ) ? rowData[1] * Math.sqrt(3) : null;
-
-  } else if (key === 'Vbc') {
-
-    return (rowData[2] !== undefined && rowData[2] !== '' ) ? rowData[2] * Math.sqrt(3) : null;
-
-  } else if (key === 'Vca') {
-
-    return (rowData[3] !== undefined && rowData[3] !== '' ) ? rowData[3] * Math.sqrt(3) : null;
-
-  }
-
-  return undefined;
-
-}
-
-
-
-function jsonResponse(obj) {
-
-  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
-
-}
+        function updateUI(data) {
+            // Recorremos los datos recibidos, ej: { "Va": 120.5, "Vab": 208.1 ... }
+            for (const key in data) {
+                const el = document.getElementById(`data-${key}`);
+                if (el) {
+                    let val = data[key];
+                    // Si es número, formatea a 2 decimales
+                    if (typeof val === 'number') val = val.toFixed(2);
+                    
+                    el.textContent = val;
+                    
+                    // Reiniciar animación
+                    el.classList.remove('fade-in');
+                    void el.offsetWidth; // truco para reiniciar reflow CSS
+                    el.classList.add('fade-in');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
