@@ -1,195 +1,202 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizador de Datos PZEM</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard PZEM – Lectura en Vivo</title>
 
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Chart.js para las gráficas -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #eef2f3;
+        margin: 0;
+        padding: 20px;
+        animation: fadeIn 1s ease;
+    }
 
-    <style>
-        .hidden { display: none; }
-        .fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    </style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 32px;
+        animation: aparecer 1s ease;
+    }
+
+    @keyframes aparecer {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    #contenedor {
+        max-width: 1000px;
+        margin: auto;
+        padding: 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        animation: subir 0.8s ease;
+    }
+
+    @keyframes subir {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        animation: fadeIn 1s ease;
+    }
+
+    table th, table td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+        text-align: center;
+    }
+
+    table th {
+        background: #0066ff;
+        color: white;
+    }
+
+    .cargando {
+        text-align: center;
+        font-size: 22px;
+        color: #444;
+        margin-top: 20px;
+        animation: parpadeo 1s infinite;
+    }
+
+    @keyframes parpadeo {
+        0% { opacity: 0.3; }
+        100% { opacity: 1; }
+    }
+</style>
 </head>
 
-<body class="bg-gray-100 font-sans">
+<body>
 
-    <div class="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
-        <div class="bg-white rounded-xl shadow-lg p-6 sm:p-8">
-            
-            <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
-                Monitor de Energía (PZEM)
-            </h1>
+<h1>Dashboard PZEM – Lecturas Guardadas</h1>
 
-            <!-- ------------------- CHECKBOXES --------------------- -->
-            <fieldset class="mb-6 border border-gray-300 p-4 rounded-lg">
-                <legend class="text-xl font-semibold text-gray-700 px-2">Seleccionar Parámetros</legend>
+<div id="contenedor">
+    <h2>Historial de Datos</h2>
+    <div id="mensaje" class="cargando">Cargando datos...</div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
-                    <div class="flex items-center p-2 hover:bg-gray-50 rounded">
-                        <input id="chk1" type="checkbox" data-cols="Va,Vb,Vc" class="h-4 w-4 text-blue-600">
-                        <label for="chk1" class="ml-2">1. Voltajes Fase (Va, Vb, Vc)</label>
-                    </div>
-                </div>
-            </fieldset>
+    <table id="tabla" style="display:none;">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Voltaje (V)</th>
+                <th>Corriente (A)</th>
+                <th>Potencia (W)</th>
+                <th>Energía (Wh)</th>
+                <th>Frecuencia (Hz)</th>
+                <th>FP</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
-            <!-- ------------------- MENSAJE --------------------- -->
-            <div id="status-message" class="text-center p-4 my-4 text-gray-600 rounded-lg bg-gray-50 hidden"></div>
+    <h2 style="margin-top:40px;">Gráfica – Voltaje, Corriente y Potencia</h2>
+    <canvas id="grafica"></canvas>
+</div>
 
-            <!-- ------------------- CAMPOS DE DATOS --------------------- -->
-            <div id="data-container" class="space-y-4">
+<script>
+    const URL = "https://script.google.com/macros/s/AKfycbyk2UUS_Q7m8-lYFgstQECXmMRGnAr2hIcKVrM7emUiLEWEMXfH1svuDVUoGDC-t8RQ/exec";  // ← CAMBIA ESTO POR TU URL DEL APPS SCRIPT
 
-                <fieldset id="fs1" class="hidden border border-gray-300 p-4 rounded-lg">
-                    <legend class="text-blue-700 font-bold">1. Voltajes Fase</legend>
+    async function cargarDatos() {
+        try {
+            const res = await fetch(URL);
+            const datos = await res.json();
 
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="p-2 bg-gray-100 rounded text-center">
-                            <small>Va</small><br>
-                            <strong id="data-Va" class="text-xl">...</strong>
-                        </div>
+            if (!Array.isArray(datos) || datos.length <= 1) {
+                document.getElementById("mensaje").textContent = "NO SE ENCONTRARON DATOS";
+                return;
+            }
 
-                        <div class="p-2 bg-gray-100 rounded text-center">
-                            <small>Vb</small><br>
-                            <strong id="data-Vb" class="text-xl">...</strong>
-                        </div>
+            document.getElementById("mensaje").style.display = "none";
+            document.getElementById("tabla").style.display = "table";
 
-                        <div class="p-2 bg-gray-100 rounded text-center">
-                            <small>Vc</small><br>
-                            <strong id="data-Vc" class="text-xl">...</strong>
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
+            let tbody = document.querySelector("#tabla tbody");
+            tbody.innerHTML = "";
 
-            <!-- ------------------- GRÁFICA --------------------- -->
-            <h2 class="text-2xl font-bold mt-10 mb-4 text-center">Gráfica en tiempo real - Voltajes Fase</h2>
+            // Quitar encabezados
+            const filas = datos.slice(1);
 
-            <div class="bg-white shadow rounded-lg p-4">
-                <canvas id="voltajesChart" height="120"></canvas>
-            </div>
+            let voltajes = [], corrientes = [], potencias = [], fechas = [];
 
-        </div>
-    </div>
+            filas.forEach(row => {
+                let fecha = new Date(row[0]).toLocaleString();
+                fechas.push(fecha);
+                voltajes.push(row[1]);
+                corrientes.push(row[2]);
+                potencias.push(row[3]);
 
-    <!-- ------------------- SCRIPT PRINCIPAL --------------------- -->
-    <script>
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyxpm8UGizk7ykdbCj5XSfGywzjtJFHk4yNOzJ5BSh01x2AAQJB8mFUkM-dpcqjkvrz/exec";
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const ids = [1];
-            ids.forEach(id => {
-                const chk = document.getElementById('chk' + id);
-                const fs = document.getElementById('fs' + id);
-
-                chk.addEventListener("change", () => {
-                    fs.classList.toggle("hidden", !chk.checked);
-                    fetchData();
-                });
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${fecha}</td>
+                        <td>${row[1]}</td>
+                        <td>${row[2]}</td>
+                        <td>${row[3]}</td>
+                        <td>${row[4]}</td>
+                        <td>${row[5]}</td>
+                        <td>${row[6]}</td>
+                    </tr>
+                `;
             });
 
-            initChart();
-            fetchData();
-            setInterval(fetchData, 5000);
-        });
+            dibujarGrafica(fechas, voltajes, corrientes, potencias);
 
-        let isFetching = false;
+        } catch (error) {
+            document.getElementById("mensaje").textContent = "ERROR al cargar datos";
+            console.error(error);
+        }
+    }
 
-        // --------- CHARTJS VARIABLES ---------
-        let voltajesChart;
-        let voltajeLabels = [];
-        let VaData = [];
-        let VbData = [];
-        let VcData = [];
-
-        // --------- CONFIGURAR GRÁFICA ---------
-        function initChart() {
-            const ctx = document.getElementById("voltajesChart").getContext("2d");
-
-            voltajesChart = new Chart(ctx, {
-                type: "line",
-                data: {
-                    labels: voltajeLabels,
-                    datasets: [
-                        { label: "Va (V)", data: VaData, borderWidth: 2 },
-                        { label: "Vb (V)", data: VbData, borderWidth: 2 },
-                        { label: "Vc (V)", data: VcData, borderWidth: 2 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    animation: false,
-                    scales: {
-                        y: { beginAtZero: false }
+    function dibujarGrafica(labels, volt, corr, pot) {
+        new Chart(document.getElementById("grafica"), {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: "Voltaje (V)",
+                        data: volt,
+                        borderWidth: 2
+                    },
+                    {
+                        label: "Corriente (A)",
+                        data: corr,
+                        borderWidth: 2
+                    },
+                    {
+                        label: "Potencia (W)",
+                        data: pot,
+                        borderWidth: 2
                     }
-                }
-            });
-        }
-
-        // --------- ACTUALIZA DATOS DE GOOGLE SHEETS ---------
-        async function fetchData() {
-            if (isFetching) return;
-
-            const statusDiv = document.getElementById("status-message");
-            const chk1 = document.getElementById("chk1");
-
-            if (!chk1.checked) return;
-
-            isFetching = true;
-            statusDiv.textContent = "Actualizando...";
-            statusDiv.classList.remove("hidden");
-
-            try {
-                const response = await fetch(`${GAS_WEB_APP_URL}?colsToQuery=Va,Vb,Vc`);
-                const json = await response.json();
-
-                if (json.status === "success") {
-                    updateUI(json.data);
-                    updateChart(json.data);
-                }
-            } catch (err) {
-                statusDiv.textContent = "Error al conectar";
-            }
-
-            isFetching = false;
-            setTimeout(() => statusDiv.classList.add("hidden"), 1500);
-        }
-
-        // --------- ACTUALIZAR VALORES EN PANTALLA ---------
-        function updateUI(data) {
-            for (let k in data) {
-                const el = document.getElementById(`data-${k}`);
-                if (el) {
-                    el.textContent = data[k].toFixed(2);
-                    el.classList.add("fade-in");
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: "index" },
+                animation: { duration: 1000 },
+                scales: {
+                    x: { title: { display: true, text: "Tiempo" } },
+                    y: { title: { display: true, text: "Valores" } }
                 }
             }
-        }
+        });
+    }
 
-        // --------- ACTUALIZAR GRÁFICA ---------
-        function updateChart(data) {
-            const timestamp = new Date().toLocaleTimeString();
-
-            voltajeLabels.push(timestamp);
-            VaData.push(data.Va);
-            VbData.push(data.Vb);
-            VcData.push(data.Vc);
-
-            if (voltajeLabels.length > 20) {
-                voltajeLabels.shift();
-                VaData.shift();
-                VbData.shift();
-                VcData.shift();
-            }
-
-            voltajesChart.update();
-        }
-    </script>
+    cargarDatos();
+</script>
 
 </body>
 </html>
