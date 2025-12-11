@@ -1,215 +1,511 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Panel Energético – Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SCADA PZEM — Todas las gráficas (Estilo B uniforme)</title>
 
-  <style>
-    :root {
-      --bg: #111827;
-      --bg2: #1f2937;
-      --text: #fff;
-      --card: #1e293b;
-      --accent: #2563eb;
-    }
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    body {
-      margin: 0;
-      display: flex;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Arial, sans-serif;
-    }
-
-    /* ---------- SIDEBAR FIJO ---------- */
-    aside {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 260px;
-      height: 100vh;
-      overflow-y: auto;
-      background: var(--bg2);
-      padding: 20px;
-      box-shadow: 4px 0 10px rgba(0,0,0,0.4);
-      z-index: 100;
-    }
-
-    aside h2 {
-      text-align: center;
-      color: var(--accent);
-    }
-
-    aside .menu-item {
-      padding: 12px;
-      margin-top: 10px;
-      background: var(--card);
-      border-radius: 10px;
-      cursor: pointer;
-      transition: 0.3s;
-      text-align: center;
-    }
-
-    aside .menu-item:hover {
-      background: var(--accent);
-    }
-
-    /* ---------- CONTENIDO PRINCIPAL ---------- */
-    main {
-      margin-left: 260px; /* para que no tape el sidebar */
-      padding: 25px;
-      width: calc(100% - 260px);
-    }
-
-    .card {
-      background: var(--card);
-      padding: 20px;
-      border-radius: 15px;
-      margin-bottom: 30px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-
-    .chart-container {
-      position: relative;
-      height: 350px;
-      width: 100%;
-    }
-  </style>
+<style>
+  :root{
+    --bg:#0b1221; --panel:#0f1724; --muted:#94a3b8;
+    --accent:#3b82f6; --accent-2:#7c3aed; --accent-3:#f472b6; --accent-4:#f59e0b;
+    --ok:#10b981; --danger:#ef4444;
+  }
+  html,body{height:100%;background:radial-gradient(1200px 600px at 10% 10%, rgba(59,130,246,0.05), transparent), var(--bg); color:#e6eef8; margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto;}
+  .glass{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.04); backdrop-filter: blur(6px); }
+  .neon{ box-shadow: 0 6px 18px rgba(59,130,246,0.06); }
+  .small-muted{ color: var(--muted); font-size:0.88rem; }
+  .card-value{ font-weight:700; font-size:1.25rem; color:#e6eef8; }
+  .status-pill{ padding:6px 10px; border-radius:999px; font-size:0.82rem; background: rgba(255,255,255,0.02); }
+  .data-row{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,0.02); }
+  .key{ color:var(--muted); font-size:0.9rem; }
+  .val{ font-weight:600; }
+  .nav-link{ display:flex; gap:12px; align-items:center; padding:10px 12px; border-radius:8px; color:#cfe6ff; }
+  .nav-link:hover{ background:rgba(255,255,255,0.02); transform:translateX(4px); transition:all .15s; }
+  @media (max-width:1024px){ aside{ display:none } }
+  /* Chart container styling */
+  .chart-card { padding:12px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015)); border:1px solid rgba(255,255,255,0.03); }
+</style>
 </head>
-
 <body>
 
-  <!-- --------------------------------------------------------- -->
-  <!--                         SIDEBAR FIJO                     -->
-  <!-- --------------------------------------------------------- -->
-  <aside>
-    <h2>Panel Energético</h2>
+<div class="min-h-screen flex">
+  <!-- SIDEBAR -->
+  <aside class="w-72 p-4">
+    <div class="glass rounded-2xl h-full p-4 flex flex-col neon">
+      <div class="mb-6">
+        <h2 class="text-2xl font-bold">PZEM SCADA</h2>
+        <p class="small-muted mt-1">Estilo uniforme — Todas las gráficas</p>
+      </div>
 
-    <div class="menu-item" onclick="scrollToSection('voltage')">Voltaje</div>
-    <div class="menu-item" onclick="scrollToSection('current')">Corriente</div>
-    <div class="menu-item" onclick="scrollToSection('power')">Potencia</div>
-    <div class="menu-item" onclick="scrollToSection('energy')">Energía</div>
-    <div class="menu-item" onclick="scrollToSection('frequency')">Frecuencia</div>
-    <div class="menu-item" onclick="scrollToSection('pf')">Factor de Potencia</div>
+      <nav class="mt-4 flex-1">
+        <a href="#resumen" class="nav-link">🏠 Resumen</a>
+        <a href="#voltajes" class="nav-link">⚡ Voltajes</a>
+        <a href="#corrientes" class="nav-link">🔌 Corrientes</a>
+        <a href="#potencias" class="nav-link">🔋 Potencias Activas</a>
+        <a href="#reactivas" class="nav-link">↩ Reactivas</a>
+        <a href="#aparente" class="nav-link">🔶 Aparente</a>
+        <a href="#fp" class="nav-link">🔁 FP</a>
+        <a href="#energias" class="nav-link">📊 Energías</a>
+      </nav>
+
+      <div class="mt-auto text-xs small-muted">
+        <div>Últ. actualización: <span id="last-update">--:--:--</span></div>
+        <div class="mt-2">Servidor: <strong id="server-status" class="text-green-400">Conectado</strong></div>
+      </div>
+    </div>
   </aside>
 
-  <!-- --------------------------------------------------------- -->
-  <!--                     CONTENIDO PRINCIPAL                  -->
-  <!-- --------------------------------------------------------- -->
-  <main>
-
-    <h1>Dashboard de Monitoreo</h1>
-
-    <!-- VOLTAJE -->
-    <div id="voltage" class="card">
-      <h2>Voltaje (V)</h2>
-      <div class="chart-container">
-        <canvas id="chartVoltage"></canvas>
+  <!-- MAIN -->
+  <main class="flex-1 p-6">
+    <header class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-semibold">SCADA PZEM — Todas las gráficas Uniformes</h1>
+        <p class="small-muted mt-1">Actualización automática cada 3s — Estética uniforme aplicada</p>
       </div>
-    </div>
-
-    <!-- CORRIENTE -->
-    <div id="current" class="card">
-      <h2>Corriente (A)</h2>
-      <div class="chart-container">
-        <canvas id="chartCurrent"></canvas>
+      <div class="flex items-center gap-3">
+        <button id="btn-refresh" class="glass status-pill">Refrescar</button>
       </div>
-    </div>
+    </header>
 
-    <!-- POTENCIA -->
-    <div id="power" class="card">
-      <h2>Potencia (W)</h2>
-      <div class="chart-container">
-        <canvas id="chartPower"></canvas>
+    <!-- RESUMEN -->
+    <section id="resumen" class="mb-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Voltaje Fase A</div>
+          <div class="card-value" id="res-Va">-- V</div>
+          <div class="small-muted">Estado: <span id="res-status-volt" class="status-pill">--</span></div>
+        </div>
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Corriente Fase A</div>
+          <div class="card-value" id="res-Ia">-- A</div>
+          <div class="small-muted">Estado: <span id="res-status-Ia" class="status-pill">--</span></div>
+        </div>
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Potencia Total (Pt)</div>
+          <div class="card-value" id="res-Pt">-- W</div>
+          <div class="small-muted">FP: <span id="res-FP">--</span></div>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <!-- ENERGIA -->
-    <div id="energy" class="card">
-      <h2>Energía (kWh)</h2>
-      <div class="chart-container">
-        <canvas id="chartEnergy"></canvas>
+    <!-- V: Voltajes -->
+    <section id="voltajes" class="mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <div><h2 class="text-lg font-bold">Voltajes (Va,Vb,Vc)</h2><p class="small-muted">Línea uniforme: Va, Vb, Vc</p></div>
+        <div class="small-muted">Últimos 30 puntos</div>
       </div>
-    </div>
 
-    <!-- FRECUENCIA -->
-    <div id="frequency" class="card">
-      <h2>Frecuencia (Hz)</h2>
-      <div class="chart-container">
-        <canvas id="chartFrequency"></canvas>
-      </div>
-    </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">Va</div><div class="val" id="Va">--</div></div>
+            <div class="data-row"><div class="key">Vb</div><div class="val" id="Vb">--</div></div>
+            <div class="data-row"><div class="key">Vc</div><div class="val" id="Vc">--</div></div>
+            <div class="data-row"><div class="key">Vab</div><div class="val" id="Vab">--</div></div>
+            <div class="data-row"><div class="key">Vbc</div><div class="val" id="Vbc">--</div></div>
+            <div class="data-row"><div class="key">Vca</div><div class="val" id="Vca">--</div></div>
+          </div>
+        </div>
 
-    <!-- FACTOR POTENCIA -->
-    <div id="pf" class="card">
-      <h2>Factor de Potencia</h2>
-      <div class="chart-container">
-        <canvas id="chartPF"></canvas>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartVoltajes" height="220"></canvas>
+        </div>
       </div>
-    </div>
+    </section>
+
+    <!-- Corrientes -->
+    <section id="corrientes" class="mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <div><h2 class="text-lg font-bold">Corrientes (Ia,Ib,Ic)</h2><p class="small-muted">Tendencia uniforme</p></div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">Ia</div><div class="val" id="Ia">--</div></div>
+            <div class="data-row"><div class="key">Ib</div><div class="val" id="Ib">--</div></div>
+            <div class="data-row"><div class="key">Ic</div><div class="val" id="Ic">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartCorrientes" height="220"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Potencias Activas -->
+    <section id="potencias" class="mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <div><h2 class="text-lg font-bold">Potencias Activas (Pa,Pb,Pc,Pt)</h2><p class="small-muted">Barras estilo uniforme</p></div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">Pa</div><div class="val" id="Pa">--</div></div>
+            <div class="data-row"><div class="key">Pb</div><div class="val" id="Pb">--</div></div>
+            <div class="data-row"><div class="key">Pc</div><div class="val" id="Pc">--</div></div>
+            <div class="data-row"><div class="key">Pt</div><div class="val" id="Pt">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartPotActivas" height="220"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reactivas -->
+    <section id="reactivas" class="mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <div><h2 class="text-lg font-bold">Potencias Reactivas (Qa,Qb,Qc,Qt)</h2></div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">Qa</div><div class="val" id="Qa">--</div></div>
+            <div class="data-row"><div class="key">Qb</div><div class="val" id="Qb">--</div></div>
+            <div class="data-row"><div class="key">Qc</div><div class="val" id="Qc">--</div></div>
+            <div class="data-row"><div class="key">Qt</div><div class="val" id="Qt">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartPotReactivas" height="220"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Aparente -->
+    <section id="aparente" class="mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <div><h2 class="text-lg font-bold">Potencia Aparente (Sa,Sb,Sc,St)</h2></div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">Sa</div><div class="val" id="Sa">--</div></div>
+            <div class="data-row"><div class="key">Sb</div><div class="val" id="Sb">--</div></div>
+            <div class="data-row"><div class="key">Sc</div><div class="val" id="Sc">--</div></div>
+            <div class="data-row"><div class="key">St</div><div class="val" id="St">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartAparente" height="220"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- FP -->
+    <section id="fp" class="mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <div><h2 class="text-lg font-bold">Factor de Potencia (FPa,FPb,FPc,FP_Total)</h2></div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">FPa</div><div class="val" id="FPa">--</div></div>
+            <div class="data-row"><div class="key">FPb</div><div class="val" id="FPb">--</div></div>
+            <div class="data-row"><div class="key">FPc</div><div class="val" id="FPc">--</div></div>
+            <div class="data-row"><div class="key">FP_Total</div><div class="val" id="FP_Total">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartFP" height="220"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Energías -->
+    <section id="energias" class="mb-12">
+      <div class="flex items-center justify-between mb-3">
+        <div><h2 class="text-lg font-bold">Energías (E_Act_Total, E_Rea_Total, E_App_Total)</h2></div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">E_Act_Total</div><div class="val" id="E_Pt">--</div></div>
+            <div class="data-row"><div class="key">E_Rea_Total</div><div class="val" id="E_Qt">--</div></div>
+            <div class="data-row"><div class="key">E_App_Total</div><div class="val" id="E_St">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartEnergias" height="220"></canvas>
+        </div>
+      </div>
+    </section>
 
   </main>
+</div>
 
-  <!-- --------------------------------------------------------- -->
-  <!--                          SCRIPT                          -->
-  <!-- --------------------------------------------------------- -->
-  <script>
-    function scrollToSection(id) {
-      document.getElementById(id).scrollIntoView({ behavior: "smooth" });
+<script>
+/* =======================
+   CONFIG
+   ======================= */
+// Pega aquí tu URL del Apps Script (Web App)
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw_1XwhNiwAMmDctYOgdkoQBoU63npXuRqpmov_MepCNgYKWy2JjeWkWhdMsMuDqsBR/exec";
+
+// Columnas que pediremos (debe coincidir con tu backend)
+const COLUMNS = [
+  "Va","Vb","Vc","Vab","Vbc","Vca",
+  "Ia","Ib","Ic",
+  "Fa","Fb","Fc",
+  "Pa","Pb","Pc",
+  "Qa","Qb","Qc",
+  "Sa","Sb","Sc",
+  "Pt","Qt","St",
+  "FPa","FPb","FPc","FP_Total",
+  "E_Pt","E_Qt","E_St"
+];
+
+/* Estética unificada para Chart.js */
+const colors = {
+  Va: '#60a5fa', Vb: '#f472b6', Vc: '#f59e0b',
+  Ia: '#34d399', Ib: '#60a5fa', Ic: '#f472b6',
+  Pa: '#3b82f6', Pb: '#7c3aed', Pc: '#06b6d4',
+  Qa: '#f59e0b', Qb: '#fb923c', Qc: '#fb7185',
+  Sa: '#ef4444', Sb: '#f43f5e', Sc: '#fb7185',
+  FPa: '#60a5fa', FPb: '#7c3aed', FPc: '#06b6d4'
+};
+
+const commonOptions = {
+  responsive: true,
+  interaction: { mode: 'index', intersect: false },
+  plugins: {
+    legend: {
+      labels: { color: '#cfe6ff', boxWidth: 12, boxHeight: 6 }
+    },
+    tooltip: {
+      backgroundColor: 'rgba(2,6,23,0.9)',
+      titleColor: '#fff',
+      bodyColor: '#fff'
     }
-
-    const url = "https://script.google.com/macros/s/AKfycbxQ76NS3WKa9OUiON-yX6jix6hCzW2qTKP7iDTNSks1ODQWc2gZyJOKEG2Gnq6zfyux/exec";
-
-    async function getData() {
-      try {
-        const res = await fetch(url + "?colsToQuery=A,B,C,D,E,F,G");
-        const data = await res.json();
-        console.log(data);
-
-        // Crear gráficas
-        makeChart("chartVoltage", "Voltaje (V)", data.voltage);
-        makeChart("chartCurrent", "Corriente (A)", data.current);
-        makeChart("chartPower", "Potencia (W)", data.power);
-        makeChart("chartEnergy", "Energía (kWh)", data.energy);
-        makeChart("chartFrequency", "Frecuencia (Hz)", data.frequency);
-        makeChart("chartPF", "Factor Potencia", data.pf);
-
-      } catch (e) {
-        console.error("Error obteniendo datos:", e);
-      }
+  },
+  scales: {
+    x: {
+      ticks: { color: '#9fb5ff', maxRotation: 45, minRotation: 20 },
+      grid: { color: 'rgba(255,255,255,0.02)' }
+    },
+    y: {
+      ticks: { color: '#9fb5ff' },
+      grid: { color: 'rgba(255,255,255,0.03)' }
     }
+  },
+  elements: {
+    point: { radius: 4, hoverRadius:6, borderWidth:2, backgroundColor: '#0b1221' },
+    line: { tension: 0.35, borderWidth: 2 }
+  },
+  maintainAspectRatio: false
+};
 
-    function makeChart(canvasId, label, dataset) {
-      new Chart(document.getElementById(canvasId), {
-        type: "line",
-        data: {
-          labels: dataset.map((_, i) => i + 1),
-          datasets: [{
-            label: label,
-            data: dataset,
-            borderWidth: 3,
-            borderColor: "#2563eb",
-            backgroundColor: "rgba(37,99,235,0.3)",
-            fill: true,
-            tension: 0.3,
-            pointRadius: 2,
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: { legend: { labels: { color: "#fff" } } },
-          scales: {
-            x: { ticks: { color: "#fff" } },
-            y: { ticks: { color: "#fff" } }
-          }
-        }
-      });
-    }
+/* Chart holders */
+let charts = {};
+let labels = [];
+const maxPoints = 30;
 
-    getData();
-  </script>
+/* Data buffers */
+const buf = {
+  Va:[], Vb:[], Vc:[],
+  Ia:[], Ib:[], Ic:[],
+  Pa:[], Pb:[], Pc:[],
+  FPa:[], FPb:[], FPc:[],
+  Ept:[], Eq:[], Es:[] // energies if needed
+};
+
+/* Setup charts with uniform style */
+function setupCharts(){
+  // Voltajes (line)
+  charts.volt = new Chart(document.getElementById('chartVoltajes').getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets: [
+      { label: 'Va', data: buf.Va, borderColor: colors.Va, backgroundColor: 'transparent', pointBackgroundColor: colors.Va },
+      { label: 'Vb', data: buf.Vb, borderColor: colors.Vb, backgroundColor: 'transparent', pointBackgroundColor: colors.Vb },
+      { label: 'Vc', data: buf.Vc, borderColor: colors.Vc, backgroundColor: 'transparent', pointBackgroundColor: colors.Vc }
+    ]},
+    options: commonOptions
+  });
+
+  // Corrientes (line)
+  charts.curr = new Chart(document.getElementById('chartCorrientes').getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets: [
+      { label: 'Ia', data: buf.Ia, borderColor: colors.Ia, pointBackgroundColor: colors.Ia },
+      { label: 'Ib', data: buf.Ib, borderColor: colors.Ib, pointBackgroundColor: colors.Ib },
+      { label: 'Ic', data: buf.Ic, borderColor: colors.Ic, pointBackgroundColor: colors.Ic }
+    ]},
+    options: commonOptions
+  });
+
+  // Potencias Activas (bar) but styled similar (soft rounded)
+  charts.pact = new Chart(document.getElementById('chartPotActivas').getContext('2d'), {
+    type: 'bar',
+    data: { labels: ['Pa','Pb','Pc'], datasets: [{ label: 'W', data: [0,0,0], backgroundColor: [colors.Pa, colors.Pb, colors.Pc] }]},
+    options: Object.assign({}, commonOptions, { indexAxis: 'x', elements: { bar: { borderRadius: 6 } } })
+  });
+
+  // Reactivas (bar)
+  charts.q = new Chart(document.getElementById('chartPotReactivas').getContext('2d'), {
+    type: 'bar',
+    data: { labels: ['Qa','Qb','Qc'], datasets: [{ label: 'VAR', data: [0,0,0], backgroundColor: [colors.Qa, colors.Qb, colors.Qc] }]},
+    options: Object.assign({}, commonOptions, { elements: { bar: { borderRadius: 6 } } })
+  });
+
+  // Aparente (bar)
+  charts.s = new Chart(document.getElementById('chartAparente').getContext('2d'), {
+    type: 'bar',
+    data: { labels: ['Sa','Sb','Sc'], datasets: [{ label: 'VA', data: [0,0,0], backgroundColor: [colors.Sa, colors.Sb, colors.Sc] }]},
+    options: Object.assign({}, commonOptions, { elements: { bar: { borderRadius: 6 } } })
+  });
+
+  // FP (line)
+  charts.fp = new Chart(document.getElementById('chartFP').getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets: [
+      { label:'FPa', data: buf.FPa, borderColor: colors.FPa, pointBackgroundColor: colors.FPa },
+      { label:'FPb', data: buf.FPb, borderColor: colors.FPb, pointBackgroundColor: colors.FPb },
+      { label:'FPc', data: buf.FPc, borderColor: colors.FPc, pointBackgroundColor: colors.FPc }
+    ]},
+    options: commonOptions
+  });
+
+  // Energías (pie) — apply darker legend
+  charts.energ = new Chart(document.getElementById('chartEnergias').getContext('2d'), {
+    type: 'pie',
+    data: { labels: ['E Activa','E Reactiva','E Aparente'], datasets: [{ data: [0,0,0], backgroundColor: [colors.Va, colors.Vb, colors.Vc] }]},
+    options: Object.assign({}, commonOptions, { plugins: { legend: { labels: { color: '#cfe6ff' } }, tooltip: commonOptions.plugins.tooltip } })
+  });
+}
+
+/* Format helpers */
+const num = v => (v === null || v === undefined || v === "" ? 0 : Number(v));
+const fmt = v => (v === null || v === undefined || v === "" ? "--" : (isNaN(Number(v)) ? v : Number(v).toFixed(2)));
+
+/* Fetch & update flow */
+let isFetching = false;
+async function fetchAndUpdate(){
+  if (isFetching) return;
+  isFetching = true;
+  document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+
+  try {
+    const cols = COLUMNS.join(',');
+    const res = await fetch(${GAS_WEB_APP_URL}?colsToQuery=${encodeURIComponent(cols)}, { cache: 'no-store' });
+    const json = await res.json();
+
+    if (json.status !== 'success') throw new Error(json.error || 'Backend error');
+
+    const d = json.data || {};
+
+    // Update DOM values
+    const keys = ["Va","Vb","Vc","Vab","Vbc","Vca","Ia","Ib","Ic","Fa","Fb","Fc",
+                  "Pa","Pb","Pc","Qa","Qb","Qc","Sa","Sb","Sc","Pt","Qt","St",
+                  "FPa","FPb","FPc","FP_Total","E_Pt","E_Qt","E_St"];
+    keys.forEach(k => {
+      const el = document.getElementById(k) || document.getElementById(k.replace("E_","E_")); // safe
+      if (el) el.textContent = fmt(d[k]);
+    });
+
+    // top summary
+    document.getElementById('res-Va').textContent = (d.Va ? Number(d.Va).toFixed(2) : '--') + ' V';
+    document.getElementById('res-Ia').textContent = (d.Ia ? Number(d.Ia).toFixed(2) : '--') + ' A';
+    document.getElementById('res-Pt').textContent = (d.Pt ? Number(d.Pt).toFixed(2) : '--') + ' W';
+    document.getElementById('res-FP').textContent = (d.FP_Total || d.FPa || d.FP) ? fmt(d.FP_Total || d.FPa || d.FP) : '--';
+
+    // server status
+    document.getElementById('server-status').textContent = 'Conectado';
+    document.getElementById('server-status').classList.remove('text-red-400');
+    document.getElementById('server-status').classList.add('text-green-400');
+
+    // push to buffers & update charts
+    const label = new Date().toLocaleTimeString();
+    pushPoint(label,
+      num(d.Va), num(d.Vb), num(d.Vc),
+      num(d.Ia), num(d.Ib), num(d.Ic),
+      num(d.Pa), num(d.Pb), num(d.Pc),
+      num(d.Qa), num(d.Qb), num(d.Qc),
+      num(d.Sa), num(d.Sb), num(d.Sc),
+      num(d.FPa), num(d.FPb), num(d.FPc),
+      num(d.E_Pt), num(d.E_Qt), num(d.E_St),
+      num(d.Pt)
+    );
+
+  } catch (err) {
+    console.error('Fetch failed', err);
+    document.getElementById('server-status').textContent = 'Error';
+    document.getElementById('server-status').classList.remove('text-green-400');
+    document.getElementById('server-status').classList.add('text-red-400');
+  } finally {
+    isFetching = false;
+  }
+}
+
+/* pushPoint updates buffers and charts uniformly */
+function pushPoint(label, Va, Vb, Vc, Ia, Ib, Ic, Pa, Pb, Pc, Qa, Qb, Qc, Sa, Sb, Sc, FPa, FPb, FPc, Ept, Eq, Es, Pt){
+  labels.push(label);
+  buf.Va.push(Va); buf.Vb.push(Vb); buf.Vc.push(Vc);
+  buf.Ia.push(Ia); buf.Ib.push(Ib); buf.Ic.push(Ic);
+  buf.Pa.push(Pa); buf.Pb.push(Pb); buf.Pc.push(Pc);
+  buf.FPa.push(FPa); buf.FPb.push(FPb); buf.FPc.push(FPc);
+  buf.Ept.push(Ept); buf.Eq.push(Eq); buf.Es.push(Es);
+
+  // trim to maxPoints
+  if (labels.length > maxPoints){
+    labels.shift();
+    Object.keys(buf).forEach(k => buf[k].shift());
+  }
+
+  // update datasets (uniform style)
+  charts.volt.data.labels = labels;
+  charts.volt.data.datasets[0].data = buf.Va;
+  charts.volt.data.datasets[1].data = buf.Vb;
+  charts.volt.data.datasets[2].data = buf.Vc;
+  charts.volt.update();
+
+  charts.curr.data.labels = labels;
+  charts.curr.data.datasets[0].data = buf.Ia;
+  charts.curr.data.datasets[1].data = buf.Ib;
+  charts.curr.data.datasets[2].data = buf.Ic;
+  charts.curr.update();
+
+  charts.pact.data.datasets[0].data = [ buf.Pa[buf.Pa.length-1] || 0, buf.Pb[buf.Pb.length-1] || 0, buf.Pc[buf.Pc.length-1] || 0 ];
+  charts.pact.update();
+
+  charts.q.data.datasets[0].data = [ Qa || 0, Qb || 0, Qc || 0 ];
+  charts.q.update();
+
+  charts.s.data.datasets[0].data = [ Sa || 0, Sb || 0, Sc || 0 ];
+  charts.s.update();
+
+  charts.fp.data.labels = labels;
+  charts.fp.data.datasets[0].data = buf.FPa;
+  charts.fp.data.datasets[1].data = buf.FPb;
+  charts.fp.data.datasets[2].data = buf.FPc;
+  charts.fp.update();
+
+  charts.energ.data.datasets[0].data = [ Ept || 0, Eq || 0, Es || 0 ];
+  charts.energ.update();
+}
+
+/* Init */
+document.addEventListener('DOMContentLoaded', () => {
+  setupCharts();
+  document.getElementById('btn-refresh').addEventListener('click', fetchAndUpdate);
+  // start loop
+  fetchAndUpdate();
+  setInterval(fetchAndUpdate, 3000);
+});
+</script>
 
 </body>
 </html>
