@@ -1,202 +1,451 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard PZEM – Lectura en Vivo</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SCADA PZEM — Dashboard (Estilo B)</title>
+
+<!-- Tailwind (CDN) -->
+<script src="https://cdn.tailwindcss.com"></script>
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #eef2f3;
-        margin: 0;
-        padding: 20px;
-        animation: fadeIn 1s ease;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    h1 {
-        text-align: center;
-        font-size: 32px;
-        animation: aparecer 1s ease;
-    }
-
-    @keyframes aparecer {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    #contenedor {
-        max-width: 1000px;
-        margin: auto;
-        padding: 20px;
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 0 15px rgba(0,0,0,0.1);
-        animation: subir 0.8s ease;
-    }
-
-    @keyframes subir {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-        animation: fadeIn 1s ease;
-    }
-
-    table th, table td {
-        padding: 10px;
-        border-bottom: 1px solid #ddd;
-        text-align: center;
-    }
-
-    table th {
-        background: #0066ff;
-        color: white;
-    }
-
-    .cargando {
-        text-align: center;
-        font-size: 22px;
-        color: #444;
-        margin-top: 20px;
-        animation: parpadeo 1s infinite;
-    }
-
-    @keyframes parpadeo {
-        0% { opacity: 0.3; }
-        100% { opacity: 1; }
-    }
+  /* Tema oscuro / estilo moderno */
+  :root{
+    --bg:#0b1221;
+    --panel:#0f1724;
+    --muted:#94a3b8;
+    --accent:#3b82f6; /* azul */
+    --accent-2:#7c3aed; /* morado */
+    --ok:#10b981;
+    --warn:#f59e0b;
+    --danger:#ef4444;
+  }
+  html,body{height:100%;background:radial-gradient(1200px 600px at 10% 10%, rgba(59,130,246,0.06), transparent), var(--bg); color:#e6eef8;}
+  .glass{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.04); backdrop-filter: blur(6px); }
+  .neon { box-shadow: 0 6px 18px rgba(59,130,246,0.08); }
+  .card-value{font-weight:700; font-size:1.45rem;}
+  .small-muted{ color: var(--muted); font-size:0.85rem; }
+  .blink { animation: blink 1.5s infinite; }
+  @keyframes blink { 0%{opacity:1}50%{opacity:0.6}100%{opacity:1} }
+  /* scrollbar */
+  ::-webkit-scrollbar{ width:8px; height:8px }
+  ::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.06); border-radius:8px }
 </style>
 </head>
 
-<body>
+<body class="antialiased">
+  <div class="min-h-screen flex">
+    <!-- SIDEBAR -->
+    <aside class="w-64 hidden lg:block p-4">
+      <div class="glass rounded-2xl h-full p-4 flex flex-col neon">
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold" style="color: white">PZEM SCADA</h2>
+          <p class="small-muted mt-1">Dashboard en tiempo real — Estilo B</p>
+        </div>
 
-<h1>Dashboard PZEM – Lecturas Guardadas</h1>
+        <nav class="mt-6 space-y-2">
+          <a class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition" href="#">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"><path d="M3 12h18" stroke="currentColor" stroke-width="2"/></svg>
+            <span class="text-sm">Resumen</span>
+          </a>
+          <a class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition" href="#">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"><path d="M3 7h18M3 12h18M3 17h18" stroke="currentColor" stroke-width="2"/></svg>
+            <span class="text-sm">Gráficas</span>
+          </a>
+          <a class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition" href="#">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"><path d="M12 3v18" stroke="currentColor" stroke-width="2"/></svg>
+            <span class="text-sm">Ajustes</span>
+          </a>
+        </nav>
 
-<div id="contenedor">
-    <h2>Historial de Datos</h2>
-    <div id="mensaje" class="cargando">Cargando datos...</div>
+        <div class="mt-auto text-xs small-muted">
+          <div>Últ. actualización: <span id="last-update">--:--:--</span></div>
+          <div class="mt-3">Servidor: <strong id="server-status" class="text-green-400">Conectado</strong></div>
+        </div>
+      </div>
+    </aside>
 
-    <table id="tabla" style="display:none;">
-        <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Voltaje (V)</th>
-                <th>Corriente (A)</th>
-                <th>Potencia (W)</th>
-                <th>Energía (Wh)</th>
-                <th>Frecuencia (Hz)</th>
-                <th>FP</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <!-- MAIN -->
+    <main class="flex-1 p-4">
+      <!-- TOPBAR -->
+      <header class="flex items-center justify-between mb-4">
+        <div>
+          <h1 class="text-2xl font-semibold">Monitor PZEM — SCADA (B)</h1>
+          <p class="small-muted mt-1">Panel moderno — Actualización automática cada 3s</p>
+        </div>
 
-    <h2 style="margin-top:40px;">Gráfica – Voltaje, Corriente y Potencia</h2>
-    <canvas id="grafica"></canvas>
-</div>
+        <div class="flex items-center gap-3">
+          <div class="text-sm small-muted">Actualizar</div>
+          <button id="btn-refresh" class="px-3 py-2 rounded-lg glass hover:scale-105 transition">Refrescar</button>
+        </div>
+      </header>
+
+      <!-- GRID: CARDS + CHARTS -->
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <!-- Cards columna 1 -->
+        <div class="lg:col-span-1 space-y-4">
+          <div class="glass rounded-xl p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="small-muted">Voltaje Fase A</div>
+                <div id="card-Va" class="card-value">-- V</div>
+                <div class="small-muted">Voltaje instantáneo</div>
+              </div>
+              <div class="text-right">
+                <div class="small-muted">Estado</div>
+                <div id="status-Va" class="mt-1 text-sm px-2 py-1 rounded-md bg-white/5">OK</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="small-muted">Corriente Fase A</div>
+                <div id="card-Ia" class="card-value">-- A</div>
+                <div class="small-muted">Corriente instantánea</div>
+              </div>
+              <div class="text-right">
+                <div class="small-muted">Alerta</div>
+                <div id="status-Ia" class="mt-1 text-sm px-2 py-1 rounded-md bg-white/5">OK</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="small-muted">Potencia Total</div>
+                <div id="card-Pt" class="card-value">-- W</div>
+                <div class="small-muted">Potencia activa total</div>
+              </div>
+              <div class="text-right">
+                <div class="small-muted">FP</div>
+                <div id="card-FP" class="mt-1 text-sm px-2 py-1 rounded-md bg-white/5">--</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts (centro) -->
+        <div class="lg:col-span-2 space-y-4">
+          <div class="glass rounded-xl p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <div class="text-sm small-muted">Gráfica: Voltajes Fase (Va, Vb, Vc)</div>
+                <div class="text-lg font-bold">Tendencia de Voltajes</div>
+              </div>
+              <div class="small-muted">Últimos 30 puntos</div>
+            </div>
+            <canvas id="chartVoltajes" height="140"></canvas>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="glass rounded-xl p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <div class="text-sm small-muted">Corrientes (Ia, Ib, Ic)</div>
+                  <div class="text-lg font-bold">Tendencia de Corrientes</div>
+                </div>
+              </div>
+              <canvas id="chartCorrientes" height="140"></canvas>
+            </div>
+
+            <div class="glass rounded-xl p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <div class="text-sm small-muted">Potencias (Pa, Pb, Pc)</div>
+                  <div class="text-lg font-bold">Potencia por Fase</div>
+                </div>
+              </div>
+              <canvas id="chartPotencias" height="140"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FOOTER / HISTÓRICO -->
+      <section class="glass rounded-xl p-4">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <div class="text-sm small-muted">Histórico</div>
+            <div class="text-lg font-bold">Últimos registros</div>
+          </div>
+          <div class="small-muted">Filtrar por rango próximamente</div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-left text-sm">
+            <thead>
+              <tr class="text-muted small-muted">
+                <th class="p-2">Hora</th>
+                <th class="p-2">Va</th>
+                <th class="p-2">Vb</th>
+                <th class="p-2">Vc</th>
+                <th class="p-2">Ia</th>
+                <th class="p-2">Ib</th>
+                <th class="p-2">Ic</th>
+                <th class="p-2">Pt</th>
+              </tr>
+            </thead>
+            <tbody id="historic-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
 
 <script>
-    const URL = "https://script.google.com/macros/s/AKfycbyk2UUS_Q7m8-lYFgstQECXmMRGnAr2hIcKVrM7emUiLEWEMXfH1svuDVUoGDC-t8RQ/exec";  // ← CAMBIA ESTO POR TU URL DEL APPS SCRIPT
+/*
+  Dashboard SCADA estilo B — Moderno
+  Reemplaza GAS_WEB_APP_URL con tu URL de Apps Script desplegada (Web App)
+*/
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz2IJBkRwrrt8ECBFPR9aryQttSMM9xoeZxbhgkJMyUUdHsJxM6VSHTT3o-VtcBB3OJ/exec"; // <-- PUT YOUR APPS SCRIPT DEPLOY URL HERE
 
-    async function cargarDatos() {
-        try {
-            const res = await fetch(URL);
-            const datos = await res.json();
+// Qué columnas pediremos al backend (mapa compatible con tu backend)
+const COLUMNS = [
+  "Va","Vb","Vc",
+  "Ia","Ib","Ic",
+  "Pa","Pb","Pc",
+  "Pt","FPa","E_Pt"
+];
 
-            if (!Array.isArray(datos) || datos.length <= 1) {
-                document.getElementById("mensaje").textContent = "NO SE ENCONTRARON DATOS";
-                return;
-            }
+let charts = {};
+let maxPoints = 30;
+let isFetching = false;
 
-            document.getElementById("mensaje").style.display = "none";
-            document.getElementById("tabla").style.display = "table";
+// Chart datasets
+let labels = [];
+let VaData = [], VbData = [], VcData = [];
+let IaData = [], IbData = [], IcData = [];
+let PaData = [], PbData = [], PcData = [];
 
-            let tbody = document.querySelector("#tabla tbody");
-            tbody.innerHTML = "";
+// Umbrales (ajústalos)
+const thresholds = {
+  Va_high: 260,    // V
+  Va_warn: 240,    // V (ejemplo)
+  Ia_high: 40,     // A
+  Pt_high: 8000    // W
+};
 
-            // Quitar encabezados
-            const filas = datos.slice(1);
+document.addEventListener("DOMContentLoaded", () => {
+  setupCharts();
+  document.getElementById("btn-refresh").addEventListener("click", fetchAndUpdate);
+  fetchAndUpdate();
+  setInterval(fetchAndUpdate, 3000); // cada 3 segundos
+});
 
-            let voltajes = [], corrientes = [], potencias = [], fechas = [];
+function setupCharts(){
+  // Voltajes chart
+  charts.volt = new Chart(document.getElementById("chartVoltajes"), {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        { label: "Va", data: VaData, borderWidth: 2, tension:0.25 },
+        { label: "Vb", data: VbData, borderWidth: 2, tension:0.25 },
+        { label: "Vc", data: VcData, borderWidth: 2, tension:0.25 }
+      ]
+    },
+    options: {
+      responsive:true,
+      plugins:{ legend:{labels:{color:"#dbeafe"}} },
+      scales: {
+        x: { ticks:{color:"#9fb5ff"}, grid:{color:"transparent"} },
+        y: { ticks:{color:"#9fb5ff"}, grid:{color:"rgba(255,255,255,0.03)"} }
+      }
+    }
+  });
 
-            filas.forEach(row => {
-                let fecha = new Date(row[0]).toLocaleString();
-                fechas.push(fecha);
-                voltajes.push(row[1]);
-                corrientes.push(row[2]);
-                potencias.push(row[3]);
+  // Corrientes chart
+  charts.curr = new Chart(document.getElementById("chartCorrientes"), {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        { label: "Ia", data: IaData, borderWidth: 2, tension:0.25 },
+        { label: "Ib", data: IbData, borderWidth: 2, tension:0.25 },
+        { label: "Ic", data: IcData, borderWidth: 2, tension:0.25 }
+      ]
+    },
+    options: {
+      responsive:true,
+      plugins:{ legend:{labels:{color:"#dbeafe"}} },
+      scales: {
+        x: { ticks:{color:"#9fb5ff"} },
+        y: { ticks:{color:"#9fb5ff"} }
+      }
+    }
+  });
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${fecha}</td>
-                        <td>${row[1]}</td>
-                        <td>${row[2]}</td>
-                        <td>${row[3]}</td>
-                        <td>${row[4]}</td>
-                        <td>${row[5]}</td>
-                        <td>${row[6]}</td>
-                    </tr>
-                `;
-            });
+  // Potencias (barras)
+  charts.pow = new Chart(document.getElementById("chartPotencias"), {
+    type: "bar",
+    data: {
+      labels: ["Pa","Pb","Pc"],
+      datasets: [{ label:"W", data: [0,0,0], barThickness:22 }]
+    },
+    options: {
+      responsive:true,
+      plugins:{ legend:{display:false}, tooltip:{mode:"index"} },
+      scales: {
+        x: { ticks:{color:"#dbeafe"} },
+        y: { ticks:{color:"#dbeafe"} }
+      }
+    }
+  });
+}
 
-            dibujarGrafica(fechas, voltajes, corrientes, potencias);
+async function fetchAndUpdate(){
+  if (isFetching) return;
+  isFetching = true;
 
-        } catch (error) {
-            document.getElementById("mensaje").textContent = "ERROR al cargar datos";
-            console.error(error);
-        }
+  // Mostrar updating
+  const lastUpdateEl = document.getElementById("last-update");
+  const now = new Date();
+  lastUpdateEl.textContent = now.toLocaleTimeString();
+
+  // Construir colsToQuery como CSV
+  const colsParam = COLUMNS.join(",");
+
+  try {
+    const resp = await fetch(`${GAS_WEB_APP_URL}?colsToQuery=${encodeURIComponent(colsParam)}`, { cache: "no-store" });
+    const json = await resp.json();
+
+    if (json.status !== "success") {
+      console.error("Backend error:", json);
+      document.getElementById("server-status").textContent = "Error";
+      document.getElementById("server-status").classList.remove("text-green-400");
+      document.getElementById("server-status").classList.add("text-red-400");
+      isFetching = false;
+      return;
     }
 
-    function dibujarGrafica(labels, volt, corr, pot) {
-        new Chart(document.getElementById("grafica"), {
-            type: "line",
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: "Voltaje (V)",
-                        data: volt,
-                        borderWidth: 2
-                    },
-                    {
-                        label: "Corriente (A)",
-                        data: corr,
-                        borderWidth: 2
-                    },
-                    {
-                        label: "Potencia (W)",
-                        data: pot,
-                        borderWidth: 2
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                interaction: { mode: "index" },
-                animation: { duration: 1000 },
-                scales: {
-                    x: { title: { display: true, text: "Tiempo" } },
-                    y: { title: { display: true, text: "Valores" } }
-                }
-            }
-        });
-    }
+    document.getElementById("server-status").textContent = "Conectado";
+    document.getElementById("server-status").classList.remove("text-red-400");
+    document.getElementById("server-status").classList.add("text-green-400");
 
-    cargarDatos();
+    const d = json.data;
+
+    // Seguridad: aseguramos valores numéricos
+    function toNum(x){ if (x===null || x===undefined || x==="" ) return 0; return Number(x); }
+
+    const Va = toNum(d.Va), Vb = toNum(d.Vb), Vc = toNum(d.Vc);
+    const Ia = toNum(d.Ia), Ib = toNum(d.Ib), Ic = toNum(d.Ic);
+    const Pa = toNum(d.Pa), Pb = toNum(d.Pb), Pc = toNum(d.Pc);
+    const Pt = toNum(d.Pt);
+    const FP = (d.FPa !== undefined && d.FPa!==null) ? Number(d.FPa) : (d.FP || 0);
+    const E_Pt = (d.E_Pt !== undefined) ? d.E_Pt : "--";
+
+    // Actualizar tarjetas
+    setText("card-Va", Va === 0 ? "-- V" : `${Va.toFixed(2)} V`);
+    setText("card-Ia", Ia === 0 ? "-- A" : `${Ia.toFixed(2)} A`);
+    setText("card-Pt", Pt === 0 ? "-- W" : `${Pt.toFixed(2)} W`);
+    setText("card-FP", FP === 0 ? "--" : `${FP.toFixed(2)}`);
+
+    // Estados / alertas
+    setStatus("status-Va", Va, thresholds.Va_high, thresholds.Va_warn);
+    setStatus("status-Ia", Ia, thresholds.Ia_high, thresholds.Ia_high*0.7);
+    setStatus("card-Pt", Pt, thresholds.Pt_high, thresholds.Pt_high*0.8, true);
+
+    // Actualizar históricos de la tabla (append)
+    addHistoricRow(now, Va, Vb, Vc, Ia, Ib, Ic, Pt);
+
+    // Actualizar charts
+    pushPoint(now.toLocaleTimeString(), Va, Vb, Vc, Ia, Ib, Ic, Pa, Pb, Pc);
+
+  } catch (err) {
+    console.error("Fetch failed:", err);
+    document.getElementById("server-status").textContent = "Desconectado";
+    document.getElementById("server-status").classList.remove("text-green-400");
+    document.getElementById("server-status").classList.add("text-red-400");
+  } finally {
+    isFetching = false;
+  }
+}
+
+function setText(id, text){
+  const el = document.getElementById(id);
+  if(el) el.textContent = text;
+}
+
+function setStatus(id, value, high, warn, isCard=false){
+  const el = document.getElementById(id);
+  if(!el) return;
+  if (value >= high) {
+    el.textContent = "CRÍTICO";
+    el.style.backgroundColor = "rgba(239,68,68,0.12)";
+    el.style.color = "var(--danger)";
+  } else if (value >= warn) {
+    el.textContent = "ALTO";
+    el.style.backgroundColor = "rgba(245,158,11,0.08)";
+    el.style.color = "var(--warn)";
+  } else {
+    el.textContent = isCard ? el.textContent : "OK";
+    el.style.backgroundColor = "rgba(16,185,129,0.06)";
+    el.style.color = "var(--ok)";
+  }
+}
+
+// Histórico - tabla simple (mantener últimos 10 registros)
+function addHistoricRow(ts, Va, Vb, Vc, Ia, Ib, Ic, Pt){
+  const tbody = document.getElementById("historic-body");
+  if(!tbody) return;
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td class="p-2 small-muted">${ts.toLocaleTimeString()}</td>
+    <td class="p-2">${Va.toFixed(2)}</td>
+    <td class="p-2">${Vb.toFixed(2)}</td>
+    <td class="p-2">${Vc.toFixed(2)}</td>
+    <td class="p-2">${Ia.toFixed(2)}</td>
+    <td class="p-2">${Ib.toFixed(2)}</td>
+    <td class="p-2">${Ic.toFixed(2)}</td>
+    <td class="p-2">${Pt.toFixed(2)}</td>
+  `;
+  tbody.prepend(tr);
+  // mantener solo 10 filas
+  while(tbody.children.length > 10) tbody.removeChild(tbody.lastChild);
+}
+
+function pushPoint(label, Va, Vb, Vc, Ia, Ib, Ic, Pa, Pb, Pc){
+  // labels
+  labels.push(label);
+  VaData.push(Va); VbData.push(Vb); VcData.push(Vc);
+  IaData.push(Ia); IbData.push(Ib); IcData.push(Ic);
+  PaData.push(Pa); PbData.push(Pb); PcData.push(Pc);
+
+  // limitar puntos
+  if (labels.length > maxPoints){
+    labels.shift();
+    VaData.shift(); VbData.shift(); VcData.shift();
+    IaData.shift(); IbData.shift(); IcData.shift();
+    PaData.shift(); PbData.shift(); PcData.shift();
+  }
+
+  // actualizar chart datos
+  charts.volt.data.labels = labels;
+  charts.volt.data.datasets[0].data = VaData;
+  charts.volt.data.datasets[1].data = VbData;
+  charts.volt.data.datasets[2].data = VcData;
+  charts.volt.update();
+
+  charts.curr.data.labels = labels;
+  charts.curr.data.datasets[0].data = IaData;
+  charts.curr.data.datasets[1].data = IbData;
+  charts.curr.data.datasets[2].data = IcData;
+  charts.curr.update();
+
+  charts.pow.data.datasets[0].data = [
+    PaData[PaData.length-1] || 0,
+    PbData[PbData.length-1] || 0,
+    PcData[PcData.length-1] || 0
+  ];
+  charts.pow.update();
+}
+
 </script>
-
 </body>
 </html>
