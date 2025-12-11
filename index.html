@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>SCADA PZEM — Dashboard (Estilo B) - Agrupado</title>
+<title>SCADA PZEM — Dashboard (Estilo B)</title>
 
 <!-- Tailwind (CDN) -->
 <script src="https://cdn.tailwindcss.com"></script>
@@ -12,31 +12,30 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+  /* Tema oscuro / estilo moderno */
   :root{
     --bg:#0b1221;
     --panel:#0f1724;
     --muted:#94a3b8;
-    --accent:#3b82f6;
-    --accent-2:#7c3aed;
+    --accent:#3b82f6; /* azul */
+    --accent-2:#7c3aed; /* morado */
     --ok:#10b981;
     --warn:#f59e0b;
     --danger:#ef4444;
   }
-  html,body{height:100%;background:radial-gradient(1200px 600px at 10% 10%, rgba(59,130,246,0.05), transparent), var(--bg); color:#e6eef8; margin:0;}
+  html,body{height:100%;background:radial-gradient(1200px 600px at 10% 10%, rgba(59,130,246,0.06), transparent), var(--bg); color:#e6eef8;}
   .glass{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.04); backdrop-filter: blur(6px); }
-  .neon { box-shadow: 0 6px 18px rgba(59,130,246,0.06); }
-  .card-value{font-weight:700; font-size:1.25rem;}
+  .neon { box-shadow: 0 6px 18px rgba(59,130,246,0.08); }
+  .card-value{font-weight:700; font-size:1.45rem;}
   .small-muted{ color: var(--muted); font-size:0.85rem; }
-  .group-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-  @media (max-width: 1024px){ .group-grid{ grid-template-columns:repeat(1,1fr); } }
-  .data-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,0.02); }
-  .key { color: var(--muted); font-size:0.9rem; }
-  .val { font-weight:600; }
-  .status-pill { padding:4px 8px; border-radius:8px; font-size:0.85rem; }
-  table.small { font-size:0.85rem; color:var(--muted); width:100%; border-collapse:collapse; }
-  table.small td, table.small th { padding:6px; border-bottom:1px solid rgba(255,255,255,0.02); }
+  .blink { animation: blink 1.5s infinite; }
+  @keyframes blink { 0%{opacity:1}50%{opacity:0.6}100%{opacity:1} }
+  /* scrollbar */
+  ::-webkit-scrollbar{ width:8px; height:8px }
+  ::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.06); border-radius:8px }
 </style>
 </head>
+
 <body class="antialiased">
   <div class="min-h-screen flex">
     <!-- SIDEBAR -->
@@ -44,13 +43,22 @@
       <div class="glass rounded-2xl h-full p-4 flex flex-col neon">
         <div class="mb-6">
           <h2 class="text-2xl font-bold" style="color: white">PZEM SCADA</h2>
-          <p class="small-muted mt-1">Dashboard Agrupado — Estilo B</p>
+          <p class="small-muted mt-1">Dashboard en tiempo real — Estilo B</p>
         </div>
 
         <nav class="mt-6 space-y-2">
-          <a class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition" href="#">Resumen</a>
-          <a class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition" href="#">Gráficas</a>
-          <a class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition" href="#">Ajustes</a>
+          <a class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition" href="#">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"><path d="M3 12h18" stroke="currentColor" stroke-width="2"/></svg>
+            <span class="text-sm">Resumen</span>
+          </a>
+          <a class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition" href="#">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"><path d="M3 7h18M3 12h18M3 17h18" stroke="currentColor" stroke-width="2"/></svg>
+            <span class="text-sm">Gráficas</span>
+          </a>
+          <a class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition" href="#">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"><path d="M12 3v18" stroke="currentColor" stroke-width="2"/></svg>
+            <span class="text-sm">Ajustes</span>
+          </a>
         </nav>
 
         <div class="mt-auto text-xs small-muted">
@@ -62,162 +70,125 @@
 
     <!-- MAIN -->
     <main class="flex-1 p-4">
+      <!-- TOPBAR -->
       <header class="flex items-center justify-between mb-4">
         <div>
-          <h1 class="text-2xl font-semibold">Monitor PZEM — Dashboard Agrupado</h1>
-          <p class="small-muted mt-1">Actualización automática cada 3s · Estilo B</p>
+          <h1 class="text-2xl font-semibold">Monitor PZEM — SCADA (B)</h1>
+          <p class="small-muted mt-1">Panel moderno — Actualización automática cada 3s</p>
         </div>
 
         <div class="flex items-center gap-3">
+          <div class="text-sm small-muted">Actualizar</div>
           <button id="btn-refresh" class="px-3 py-2 rounded-lg glass hover:scale-105 transition">Refrescar</button>
-          <div class="small-muted">Alarma: <span id="alarm-toggle" class="status-pill glass">ACTIVADA</span></div>
         </div>
       </header>
 
-      <!-- GRID: grouped cards -->
+      <!-- GRID: CARDS + CHARTS -->
       <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <!-- Voltajes (agrupado) -->
-        <div class="glass rounded-xl p-4">
-          <div class="flex items-center justify-between mb-2">
-            <div>
-              <div class="small-muted">Voltajes</div>
-              <div class="text-lg font-bold">Fase & Línea</div>
+        <!-- Cards columna 1 -->
+        <div class="lg:col-span-1 space-y-4">
+          <div class="glass rounded-xl p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="small-muted">Voltaje Fase A</div>
+                <div id="card-Va" class="card-value">-- V</div>
+                <div class="small-muted">Voltaje instantáneo</div>
+              </div>
+              <div class="text-right">
+                <div class="small-muted">Estado</div>
+                <div id="status-Va" class="mt-1 text-sm px-2 py-1 rounded-md bg-white/5">OK</div>
+              </div>
             </div>
-            <div class="small-muted">V / Línea</div>
           </div>
 
-          <div class="group-grid">
-            <div>
-              <div class="data-row"><div class="key">Va</div><div class="val" id="Va">--</div></div>
-              <div class="data-row"><div class="key">Vb</div><div class="val" id="Vb">--</div></div>
-              <div class="data-row"><div class="key">Vc</div><div class="val" id="Vc">--</div></div>
-            </div>
-            <div>
-              <div class="data-row"><div class="key">Vab</div><div class="val" id="Vab">--</div></div>
-              <div class="data-row"><div class="key">Vbc</div><div class="val" id="Vbc">--</div></div>
-              <div class="data-row"><div class="key">Vca</div><div class="val" id="Vca">--</div></div>
-            </div>
-            <div>
-              <div class="data-row"><div class="key">E. Activa (E_Pt)</div><div class="val" id="E_Pt">--</div></div>
-              <div class="data-row"><div class="key">E. Reactiva (E_Qt)</div><div class="val" id="E_Qt">--</div></div>
-              <div class="data-row"><div class="key">E. Aparente (E_St)</div><div class="val" id="E_St">--</div></div>
+          <div class="glass rounded-xl p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="small-muted">Corriente Fase A</div>
+                <div id="card-Ia" class="card-value">-- A</div>
+                <div class="small-muted">Corriente instantánea</div>
+              </div>
+              <div class="text-right">
+                <div class="small-muted">Alerta</div>
+                <div id="status-Ia" class="mt-1 text-sm px-2 py-1 rounded-md bg-white/5">OK</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Corrientes -->
-        <div class="glass rounded-xl p-4">
-          <div class="flex items-center justify-between mb-2">
-            <div>
-              <div class="small-muted">Corrientes</div>
-              <div class="text-lg font-bold">Ia / Ib / Ic</div>
-            </div>
-            <div class="small-muted">A</div>
-          </div>
-          <div class="group-grid">
-            <div>
-              <div class="data-row"><div class="key">Ia</div><div class="val" id="Ia">--</div></div>
-              <div class="data-row"><div class="key">Ib</div><div class="val" id="Ib">--</div></div>
-              <div class="data-row"><div class="key">Ic</div><div class="val" id="Ic">--</div></div>
-            </div>
-            <div>
-              <div class="data-row"><div class="key">Pt (Total)</div><div class="val" id="Pt">--</div></div>
-              <div class="data-row"><div class="key">Qt (Total)</div><div class="val" id="Qt">--</div></div>
-              <div class="data-row"><div class="key">St (Total)</div><div class="val" id="St">--</div></div>
-            </div>
-            <div>
-              <div class="data-row"><div class="key">FP Total</div><div class="val" id="FP_Total">--</div></div>
-              <div class="data-row"><div class="key">Fecha/Hora</div><div class="val" id="TS">--</div></div>
-              <div class="data-row"><div class="key">Estado</div><div class="val" id="SYS_STATUS">--</div></div>
+          <div class="glass rounded-xl p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="small-muted">Potencia Total</div>
+                <div id="card-Pt" class="card-value">-- W</div>
+                <div class="small-muted">Potencia activa total</div>
+              </div>
+              <div class="text-right">
+                <div class="small-muted">FP</div>
+                <div id="card-FP" class="mt-1 text-sm px-2 py-1 rounded-md bg-white/5">--</div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Potencias (Activa / Reactiva / Aparente) -->
-        <div class="glass rounded-xl p-4">
-          <div class="flex items-center justify-between mb-2">
-            <div>
-              <div class="small-muted">Potencias</div>
-              <div class="text-lg font-bold">Activa / Reactiva / Aparente</div>
+        <!-- Charts (centro) -->
+        <div class="lg:col-span-2 space-y-4">
+          <div class="glass rounded-xl p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <div class="text-sm small-muted">Gráfica: Voltajes Fase (Va, Vb, Vc)</div>
+                <div class="text-lg font-bold">Tendencia de Voltajes</div>
+              </div>
+              <div class="small-muted">Últimos 30 puntos</div>
             </div>
-            <div class="small-muted">W / VAR / VA</div>
+            <canvas id="chartVoltajes" height="140"></canvas>
           </div>
 
-          <div class="group-grid">
-            <div>
-              <div class="data-row"><div class="key">Pa</div><div class="val" id="Pa">--</div></div>
-              <div class="data-row"><div class="key">Pb</div><div class="val" id="Pb">--</div></div>
-              <div class="data-row"><div class="key">Pc</div><div class="val" id="Pc">--</div></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="glass rounded-xl p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <div class="text-sm small-muted">Corrientes (Ia, Ib, Ic)</div>
+                  <div class="text-lg font-bold">Tendencia de Corrientes</div>
+                </div>
+              </div>
+              <canvas id="chartCorrientes" height="140"></canvas>
             </div>
 
-            <div>
-              <div class="data-row"><div class="key">Qa</div><div class="val" id="Qa">--</div></div>
-              <div class="data-row"><div class="key">Qb</div><div class="val" id="Qb">--</div></div>
-              <div class="data-row"><div class="key">Qc</div><div class="val" id="Qc">--</div></div>
-            </div>
-
-            <div>
-              <div class="data-row"><div class="key">Sa</div><div class="val" id="Sa">--</div></div>
-              <div class="data-row"><div class="key">Sb</div><div class="val" id="Sb">--</div></div>
-              <div class="data-row"><div class="key">Sc</div><div class="val" id="Sc">--</div></div>
+            <div class="glass rounded-xl p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <div class="text-sm small-muted">Potencias (Pa, Pb, Pc)</div>
+                  <div class="text-lg font-bold">Potencia por Fase</div>
+                </div>
+              </div>
+              <canvas id="chartPotencias" height="140"></canvas>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Second row: Frequencies & FP -->
-      <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <div class="glass rounded-xl p-4">
-          <div class="small-muted">Frecuencias</div>
-          <div class="text-lg font-bold mb-2">Fa / Fb / Fc</div>
-          <div class="data-row"><div class="key">Fa</div><div class="val" id="Fa">--</div></div>
-          <div class="data-row"><div class="key">Fb</div><div class="val" id="Fb">--</div></div>
-          <div class="data-row"><div class="key">Fc</div><div class="val" id="Fc">--</div></div>
-        </div>
-
-        <div class="glass rounded-xl p-4">
-          <div class="small-muted">Factor de Potencia</div>
-          <div class="text-lg font-bold mb-2">FP por fase</div>
-          <div class="data-row"><div class="key">FPa</div><div class="val" id="FPa">--</div></div>
-          <div class="data-row"><div class="key">FPb</div><div class="val" id="FPb">--</div></div>
-          <div class="data-row"><div class="key">FPc</div><div class="val" id="FPc">--</div></div>
-        </div>
-
-        <div class="glass rounded-xl p-4">
-          <div class="small-muted">Control</div>
-          <div class="text-lg font-bold mb-2">Acciones</div>
-          <div style="display:flex; gap:8px;">
-            <button id="btn-export" class="px-3 py-2 rounded-lg glass">Exportar CSV</button>
-            <button id="btn-clear" class="px-3 py-2 rounded-lg glass">Limpiar tabla</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Charts -->
-      <section class="glass rounded-xl p-4 mb-6">
-        <div class="flex items-center justify-between mb-3">
-          <div><div class="small-muted">Gráficas</div><div class="text-lg font-bold">Voltajes / Corrientes / Potencias</div></div>
-          <div class="small-muted">Últimos 30 puntos</div>
-        </div>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-          <canvas id="chartVoltajes" height="120"></canvas>
-          <canvas id="chartCorrientes" height="120"></canvas>
-        </div>
-        <div style="margin-top:12px;"><canvas id="chartPotencias" height="80"></canvas></div>
-      </section>
-
-      <!-- Histórico -->
+      <!-- FOOTER / HISTÓRICO -->
       <section class="glass rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
-          <div><div class="small-muted">Histórico</div><div class="text-lg font-bold">Últimos registros (local)</div></div>
-          <div class="small-muted">Se guarda en la tabla visual</div>
+          <div>
+            <div class="text-sm small-muted">Histórico</div>
+            <div class="text-lg font-bold">Últimos registros</div>
+          </div>
+          <div class="small-muted">Filtrar por rango próximamente</div>
         </div>
+
         <div class="overflow-x-auto">
-          <table class="small">
+          <table class="min-w-full text-left text-sm">
             <thead>
-              <tr>
-                <th>Hora</th><th>Va</th><th>Vb</th><th>Vc</th><th>Ia</th><th>Ib</th><th>Ic</th><th>Pt</th>
+              <tr class="text-muted small-muted">
+                <th class="p-2">Hora</th>
+                <th class="p-2">Va</th>
+                <th class="p-2">Vb</th>
+                <th class="p-2">Vc</th>
+                <th class="p-2">Ia</th>
+                <th class="p-2">Ib</th>
+                <th class="p-2">Ic</th>
+                <th class="p-2">Pt</th>
               </tr>
             </thead>
             <tbody id="historic-body"></tbody>
@@ -228,142 +199,167 @@
   </div>
 
 <script>
-/* DASHBOARD AGRUPADO — Estilo B
-   Reemplaza GAS_WEB_APP_URL por la URL del Apps Script desplegado (Web App)
+/*
+  Dashboard SCADA estilo B — Moderno
+  Reemplaza GAS_WEB_APP_URL con tu URL de Apps Script desplegada (Web App)
 */
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzETuKQRcam5UyTx0_OMl-qREc2hunRzDv95bWp1ceaeFrI5Ow7-CeGY7Cn8S5hEw__/exec"; // <-- coloca aquí tu URL
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbySLo9Y5s03tES8hedZ2nj7eZrqIINfQqqiVRXAjGUj94ACkTnXjCAVJdh1WIZsLMJZ/exec"; // <-- PUT YOUR APPS SCRIPT DEPLOY URL HERE
 
-// Pedimos todas las claves importantes (incluye Vab,Vbc,Vca para cálculo si tu backend las devuelve)
+// Qué columnas pediremos al backend (mapa compatible con tu backend)
 const COLUMNS = [
-  "Va","Vb","Vc","Vab","Vbc","Vca",
+  "Va","Vb","Vc",
   "Ia","Ib","Ic",
-  "Fa","Fb","Fc",
   "Pa","Pb","Pc",
-  "Qa","Qb","Qc",
-  "Sa","Sb","Sc",
-  "Pt","Qt","St",
-  "FPa","FPb","FPc",
-  "FP_Total","E_Pt","E_Qt","E_St"
+  "Pt","FPa","E_Pt"
 ];
 
-let isFetching = false;
-let maxPoints = 30;
 let charts = {};
-let labels = [], VaData = [], VbData = [], VcData = [], IaData = [], IbData = [], IcData = [], PaData = [], PbData = [], PcData = [];
+let maxPoints = 30;
+let isFetching = false;
+
+// Chart datasets
+let labels = [];
+let VaData = [], VbData = [], VcData = [];
+let IaData = [], IbData = [], IcData = [];
+let PaData = [], PbData = [], PcData = [];
+
+// Umbrales (ajústalos)
+const thresholds = {
+  Va_high: 260,    // V
+  Va_warn: 240,    // V (ejemplo)
+  Ia_high: 40,     // A
+  Pt_high: 8000    // W
+};
 
 document.addEventListener("DOMContentLoaded", () => {
   setupCharts();
   document.getElementById("btn-refresh").addEventListener("click", fetchAndUpdate);
-  document.getElementById("btn-export").addEventListener("click", exportCSV);
-  document.getElementById("btn-clear").addEventListener("click", clearHistoric);
   fetchAndUpdate();
-  setInterval(fetchAndUpdate, 3000);
+  setInterval(fetchAndUpdate, 3000); // cada 3 segundos
 });
 
 function setupCharts(){
+  // Voltajes chart
   charts.volt = new Chart(document.getElementById("chartVoltajes"), {
-    type:"line",
-    data:{ labels:labels, datasets:[
-      {label:"Va", data:VaData, borderWidth:2, tension:0.25},
-      {label:"Vb", data:VbData, borderWidth:2, tension:0.25},
-      {label:"Vc", data:VcData, borderWidth:2, tension:0.25}
-    ]},
-    options:{ responsive:true, plugins:{legend:{labels:{color:"#dbeafe"}}}, scales:{ x:{ ticks:{color:"#9fb5ff"} }, y:{ ticks:{color:"#9fb5ff"} } } }
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        { label: "Va", data: VaData, borderWidth: 2, tension:0.25 },
+        { label: "Vb", data: VbData, borderWidth: 2, tension:0.25 },
+        { label: "Vc", data: VcData, borderWidth: 2, tension:0.25 }
+      ]
+    },
+    options: {
+      responsive:true,
+      plugins:{ legend:{labels:{color:"#dbeafe"}} },
+      scales: {
+        x: { ticks:{color:"#9fb5ff"}, grid:{color:"transparent"} },
+        y: { ticks:{color:"#9fb5ff"}, grid:{color:"rgba(255,255,255,0.03)"} }
+      }
+    }
   });
 
+  // Corrientes chart
   charts.curr = new Chart(document.getElementById("chartCorrientes"), {
-    type:"line",
-    data:{ labels:labels, datasets:[
-      {label:"Ia", data:IaData, borderWidth:2, tension:0.25},
-      {label:"Ib", data:IbData, borderWidth:2, tension:0.25},
-      {label:"Ic", data:IcData, borderWidth:2, tension:0.25}
-    ]},
-    options:{ responsive:true, plugins:{legend:{labels:{color:"#dbeafe"}}}, scales:{ x:{ ticks:{color:"#9fb5ff"} }, y:{ ticks:{color:"#9fb5ff"} } } }
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        { label: "Ia", data: IaData, borderWidth: 2, tension:0.25 },
+        { label: "Ib", data: IbData, borderWidth: 2, tension:0.25 },
+        { label: "Ic", data: IcData, borderWidth: 2, tension:0.25 }
+      ]
+    },
+    options: {
+      responsive:true,
+      plugins:{ legend:{labels:{color:"#dbeafe"}} },
+      scales: {
+        x: { ticks:{color:"#9fb5ff"} },
+        y: { ticks:{color:"#9fb5ff"} }
+      }
+    }
   });
 
+  // Potencias (barras)
   charts.pow = new Chart(document.getElementById("chartPotencias"), {
-    type:"bar",
-    data:{ labels:["Pa","Pb","Pc"], datasets:[{label:"W", data:[0,0,0], barThickness:22}]},
-    options:{ responsive:true, plugins:{legend:{display:false}}, scales:{ x:{ ticks:{color:"#dbeafe"} }, y:{ ticks:{color:"#dbeafe"} } } }
+    type: "bar",
+    data: {
+      labels: ["Pa","Pb","Pc"],
+      datasets: [{ label:"W", data: [0,0,0], barThickness:22 }]
+    },
+    options: {
+      responsive:true,
+      plugins:{ legend:{display:false}, tooltip:{mode:"index"} },
+      scales: {
+        x: { ticks:{color:"#dbeafe"} },
+        y: { ticks:{color:"#dbeafe"} }
+      }
+    }
   });
 }
 
 async function fetchAndUpdate(){
   if (isFetching) return;
   isFetching = true;
-  document.getElementById("last-update").textContent = new Date().toLocaleTimeString();
 
+  // Mostrar updating
+  const lastUpdateEl = document.getElementById("last-update");
+  const now = new Date();
+  lastUpdateEl.textContent = now.toLocaleTimeString();
+
+  // Construir colsToQuery como CSV
   const colsParam = COLUMNS.join(",");
+
   try {
-    const res = await fetch(${GAS_WEB_APP_URL}?colsToQuery=${encodeURIComponent(colsParam)}, {cache:"no-store"});
-    const json = await res.json();
+    const resp = await fetch(`${GAS_WEB_APP_URL}?colsToQuery=${encodeURIComponent(colsParam)}`, { cache: "no-store" });
+    const json = await resp.json();
 
     if (json.status !== "success") {
-      throw new Error(json.error || "Respuesta no exitosa");
+      console.error("Backend error:", json);
+      document.getElementById("server-status").textContent = "Error";
+      document.getElementById("server-status").classList.remove("text-green-400");
+      document.getElementById("server-status").classList.add("text-red-400");
+      isFetching = false;
+      return;
     }
 
-    const d = json.data || {};
-
-    // Helper: return numeric or 0
-    const num = v => (v === null || v === undefined || v === "" ? 0 : Number(v));
-    const fmt = v => (v === null || v === undefined || v === "" ? "--" : (isNaN(Number(v)) ? v : Number(v).toFixed(2)));
-
-    // Map many keys (safely)
-    const mapping = {
-      Va: num(d.Va), Vb: num(d.Vb), Vc: num(d.Vc),
-      Vab: num(d.Vab), Vbc: num(d.Vbc), Vca: num(d.Vca),
-      Ia: num(d.Ia), Ib: num(d.Ib), Ic: num(d.Ic),
-      Fa: num(d.Fa), Fb: num(d.Fb), Fc: num(d.Fc),
-      Pa: num(d.Pa), Pb: num(d.Pb), Pc: num(d.Pc),
-      Qa: num(d.Qa), Qb: num(d.Qb), Qc: num(d.Qc),
-      Sa: num(d.Sa), Sb: num(d.Sb), Sc: num(d.Sc),
-      Pt: num(d.Pt), Qt: num(d.Qt), St: num(d.St),
-      FPa: d.FPa, FPb: d.FPb, FPc: d.FPc, FP_Total: d.FP_Total,
-      E_Pt: d.E_Pt, E_Qt: d.E_Qt, E_St: d.E_St
-    };
-
-    // Update grouped fields (text)
-    Object.keys(mapping).forEach(k => {
-      const el = document.getElementById(k);
-      if (!el) return;
-      // show numeric formatted or raw string
-      if (typeof mapping[k] === "number") el.textContent = mapping[k].toFixed(2);
-      else el.textContent = (mapping[k] === null || mapping[k] === undefined || mapping[k] === "") ? "--" : mapping[k];
-    });
-
-    // Timestamp (from backend lastRow) - if provided
-    if (json.lastRow) {
-      document.getElementById("TS").textContent = Fila ${json.lastRow};
-    } else {
-      document.getElementById("TS").textContent = new Date().toLocaleString();
-    }
-
-    // FP total
-    const fpTotal = d.FP_Total || d.FP || d.FPa || "--";
-    document.getElementById("FP_Total").textContent = (fpTotal === null || fpTotal === undefined) ? "--" : (isNaN(Number(fpTotal)) ? fpTotal : Number(fpTotal).toFixed(2));
-
-    // SYS_STATUS quick logic
-    document.getElementById("SYS_STATUS").textContent = "OK";
-
-    // Update historic table and charts
-    addHistoricRow(new Date(), mapping.Va, mapping.Vb, mapping.Vc, mapping.Ia, mapping.Ib, mapping.Ic, mapping.Pt);
-
-    pushPoint(new Date().toLocaleTimeString(), mapping.Va, mapping.Vb, mapping.Vc, mapping.Ia, mapping.Ib, mapping.Ic, mapping.Pa, mapping.Pb, mapping.Pc);
-
-    // Update potencias bar
-    charts.pow.data.datasets[0].data = [
-      mapping.Pa || 0, mapping.Pb || 0, mapping.Pc || 0
-    ];
-    charts.pow.update();
-
-    // server status
     document.getElementById("server-status").textContent = "Conectado";
     document.getElementById("server-status").classList.remove("text-red-400");
     document.getElementById("server-status").classList.add("text-green-400");
 
+    const d = json.data;
+
+    // Seguridad: aseguramos valores numéricos
+    function toNum(x){ if (x===null || x===undefined || x==="" ) return 0; return Number(x); }
+
+    const Va = toNum(d.Va), Vb = toNum(d.Vb), Vc = toNum(d.Vc);
+    const Ia = toNum(d.Ia), Ib = toNum(d.Ib), Ic = toNum(d.Ic);
+    const Pa = toNum(d.Pa), Pb = toNum(d.Pb), Pc = toNum(d.Pc);
+    const Pt = toNum(d.Pt);
+    const FP = (d.FPa !== undefined && d.FPa!==null) ? Number(d.FPa) : (d.FP || 0);
+    const E_Pt = (d.E_Pt !== undefined) ? d.E_Pt : "--";
+
+    // Actualizar tarjetas
+    setText("card-Va", Va === 0 ? "-- V" : `${Va.toFixed(2)} V`);
+    setText("card-Ia", Ia === 0 ? "-- A" : `${Ia.toFixed(2)} A`);
+    setText("card-Pt", Pt === 0 ? "-- W" : `${Pt.toFixed(2)} W`);
+    setText("card-FP", FP === 0 ? "--" : `${FP.toFixed(2)}`);
+
+    // Estados / alertas
+    setStatus("status-Va", Va, thresholds.Va_high, thresholds.Va_warn);
+    setStatus("status-Ia", Ia, thresholds.Ia_high, thresholds.Ia_high*0.7);
+    setStatus("card-Pt", Pt, thresholds.Pt_high, thresholds.Pt_high*0.8, true);
+
+    // Actualizar históricos de la tabla (append)
+    addHistoricRow(now, Va, Vb, Vc, Ia, Ib, Ic, Pt);
+
+    // Actualizar charts
+    pushPoint(now.toLocaleTimeString(), Va, Vb, Vc, Ia, Ib, Ic, Pa, Pb, Pc);
+
   } catch (err) {
-    console.error("Fetch error:", err);
-    document.getElementById("server-status").textContent = "Error";
+    console.error("Fetch failed:", err);
+    document.getElementById("server-status").textContent = "Desconectado";
     document.getElementById("server-status").classList.remove("text-green-400");
     document.getElementById("server-status").classList.add("text-red-400");
   } finally {
@@ -371,31 +367,57 @@ async function fetchAndUpdate(){
   }
 }
 
-// Historic table local
+function setText(id, text){
+  const el = document.getElementById(id);
+  if(el) el.textContent = text;
+}
+
+function setStatus(id, value, high, warn, isCard=false){
+  const el = document.getElementById(id);
+  if(!el) return;
+  if (value >= high) {
+    el.textContent = "CRÍTICO";
+    el.style.backgroundColor = "rgba(239,68,68,0.12)";
+    el.style.color = "var(--danger)";
+  } else if (value >= warn) {
+    el.textContent = "ALTO";
+    el.style.backgroundColor = "rgba(245,158,11,0.08)";
+    el.style.color = "var(--warn)";
+  } else {
+    el.textContent = isCard ? el.textContent : "OK";
+    el.style.backgroundColor = "rgba(16,185,129,0.06)";
+    el.style.color = "var(--ok)";
+  }
+}
+
+// Histórico - tabla simple (mantener últimos 10 registros)
 function addHistoricRow(ts, Va, Vb, Vc, Ia, Ib, Ic, Pt){
   const tbody = document.getElementById("historic-body");
   if(!tbody) return;
   const tr = document.createElement("tr");
   tr.innerHTML = `
-    <td>${ts.toLocaleTimeString()}</td>
-    <td>${(Va||0).toFixed(2)}</td>
-    <td>${(Vb||0).toFixed(2)}</td>
-    <td>${(Vc||0).toFixed(2)}</td>
-    <td>${(Ia||0).toFixed(2)}</td>
-    <td>${(Ib||0).toFixed(2)}</td>
-    <td>${(Ic||0).toFixed(2)}</td>
-    <td>${(Pt||0).toFixed(2)}</td>
+    <td class="p-2 small-muted">${ts.toLocaleTimeString()}</td>
+    <td class="p-2">${Va.toFixed(2)}</td>
+    <td class="p-2">${Vb.toFixed(2)}</td>
+    <td class="p-2">${Vc.toFixed(2)}</td>
+    <td class="p-2">${Ia.toFixed(2)}</td>
+    <td class="p-2">${Ib.toFixed(2)}</td>
+    <td class="p-2">${Ic.toFixed(2)}</td>
+    <td class="p-2">${Pt.toFixed(2)}</td>
   `;
   tbody.prepend(tr);
-  while(tbody.children.length > 20) tbody.removeChild(tbody.lastChild);
+  // mantener solo 10 filas
+  while(tbody.children.length > 10) tbody.removeChild(tbody.lastChild);
 }
 
 function pushPoint(label, Va, Vb, Vc, Ia, Ib, Ic, Pa, Pb, Pc){
+  // labels
   labels.push(label);
-  VaData.push(Va||0); VbData.push(Vb||0); VcData.push(Vc||0);
-  IaData.push(Ia||0); IbData.push(Ib||0); IcData.push(Ic||0);
-  PaData.push(Pa||0); PbData.push(Pb||0); PcData.push(Pc||0);
+  VaData.push(Va); VbData.push(Vb); VcData.push(Vc);
+  IaData.push(Ia); IbData.push(Ib); IcData.push(Ic);
+  PaData.push(Pa); PbData.push(Pb); PcData.push(Pc);
 
+  // limitar puntos
   if (labels.length > maxPoints){
     labels.shift();
     VaData.shift(); VbData.shift(); VcData.shift();
@@ -403,6 +425,7 @@ function pushPoint(label, Va, Vb, Vc, Ia, Ib, Ic, Pa, Pb, Pc){
     PaData.shift(); PbData.shift(); PcData.shift();
   }
 
+  // actualizar chart datos
   charts.volt.data.labels = labels;
   charts.volt.data.datasets[0].data = VaData;
   charts.volt.data.datasets[1].data = VbData;
@@ -414,31 +437,13 @@ function pushPoint(label, Va, Vb, Vc, Ia, Ib, Ic, Pa, Pb, Pc){
   charts.curr.data.datasets[1].data = IbData;
   charts.curr.data.datasets[2].data = IcData;
   charts.curr.update();
-}
 
-// Export local historic table to CSV
-function exportCSV(){
-  const rows = [];
-  const tbody = document.getElementById("historic-body");
-  if(!tbody) return alert("No hay datos para exportar");
-  // header
-  rows.push(["Hora","Va","Vb","Vc","Ia","Ib","Ic","Pt"]);
-  Array.from(tbody.children).forEach(tr => {
-    const cols = Array.from(tr.children).map(td => td.textContent.trim());
-    rows.push(cols);
-  });
-  const csv = rows.map(r => r.map(cell => "${cell.replace(/"/g,'""')}").join(",")).join("\r\n");
-  const blob = new Blob([csv], {type: "text/csv"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = historic_pzem_${new Date().toISOString().slice(0,19)}.csv; document.body.appendChild(a); a.click();
-  a.remove(); URL.revokeObjectURL(url);
-}
-
-// Clear historic
-function clearHistoric(){
-  const tbody = document.getElementById("historic-body");
-  if(tbody) tbody.innerHTML = "";
+  charts.pow.data.datasets[0].data = [
+    PaData[PaData.length-1] || 0,
+    PbData[PbData.length-1] || 0,
+    PcData[PcData.length-1] || 0
+  ];
+  charts.pow.update();
 }
 
 </script>
