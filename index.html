@@ -295,7 +295,7 @@ async function fetchAndUpdate(){
 
   const colsParam = COLUMNS.join(",");
   try {
-    const res = await fetch(`${GAS_WEB_APP_URL}?colsToQuery=${encodeURIComponent(colsParam)}`, {cache:"no-store"});
+    const res = await fetch(${GAS_WEB_APP_URL}?colsToQuery=${encodeURIComponent(colsParam)}, {cache:"no-store"});
     const json = await res.json();
 
     if (json.status !== "success") {
@@ -333,7 +333,7 @@ async function fetchAndUpdate(){
 
     // Timestamp (from backend lastRow) - if provided
     if (json.lastRow) {
-      document.getElementById("TS").textContent = `Fila ${json.lastRow}`;
+      document.getElementById("TS").textContent = Fila ${json.lastRow};
     } else {
       document.getElementById("TS").textContent = new Date().toLocaleString();
     }
@@ -427,11 +427,11 @@ function exportCSV(){
     const cols = Array.from(tr.children).map(td => td.textContent.trim());
     rows.push(cols);
   });
-  const csv = rows.map(r => r.map(cell => `"${cell.replace(/"/g,'""')}"`).join(",")).join("\r\n");
+  const csv = rows.map(r => r.map(cell => "${cell.replace(/"/g,'""')}").join(",")).join("\r\n");
   const blob = new Blob([csv], {type: "text/csv"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = `historic_pzem_${new Date().toISOString().slice(0,19)}.csv`; document.body.appendChild(a); a.click();
+  a.href = url; a.download = historic_pzem_${new Date().toISOString().slice(0,19)}.csv; document.body.appendChild(a); a.click();
   a.remove(); URL.revokeObjectURL(url);
 }
 
