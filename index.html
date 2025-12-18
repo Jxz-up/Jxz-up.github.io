@@ -3,281 +3,300 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>SCADA PZEM — Todas las gráficas (Estilo B uniforme)</title>
+<title>SCADA PZEM — Tiempo real + Histórico</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-   :root{
-     --bg:#0b1221; --panel:#0f1724; --muted:#94a3b8;
-     --accent:#3b82f6; --accent-2:#7c3aed; --accent-3:#f472b6; --accent-4:#f59e0b;
-     --ok:#10b981; --danger:#ef4444;
-   }
-   html,body{height:100%;background:radial-gradient(1200px 600px at 10% 10%, rgba(59,130,246,0.05), transparent), var(--bg); color:#e6eef8; margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto;}
-   .glass{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.04); backdrop-filter: blur(6px); }
-   .neon{ box-shadow: 0 6px 18px rgba(59,130,246,0.06); }
-   .small-muted{ color: var(--muted); font-size:0.88rem; }
-   .card-value{ font-weight:700; font-size:1.25rem; color:#e6eef8; }
-   .status-pill{ padding:6px 10px; border-radius:999px; font-size:0.82rem; background: rgba(255,255,255,0.02); }
-   .data-row{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,0.02); }
-   .key{ color:var(--muted); font-size:0.9rem; }
-   .val{ font-weight:600; }
-   .nav-link{ display:flex; gap:12px; align-items:center; padding:10px 12px; border-radius:8px; color:#cfe6ff; }
-   .nav-link:hover{ background:rgba(255,255,255,0.02); transform:translateX(4px); transition:all .15s; }
-
-   /* SIDEBAR FIJO */
-   aside {
-     position: fixed;
-     top: 0;
-     left: 0;
-     height: 100vh;
-     width: 18rem; /* 72 = 18rem (tailwind) */
-     overflow-y: auto;
-     z-index: 50;
-     padding: 1rem;
-   }
-
-   /* MAIN desplazado para no quedar bajo el sidebar */
-   main {
-     margin-left: 18rem;
-     padding: 1.5rem;
-   }
-
-   /* Chart container styling */
-   .chart-card { padding:12px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015)); border:1px solid rgba(255,255,255,0.03); }
+  :root{
+    --bg:#0b1221; --panel:#0f1724; --muted:#94a3b8;
+    --accent:#3b82f6; --accent-2:#7c3aed; --accent-3:#f472b6; --accent-4:#f59e0b;
+    --ok:#10b981; --danger:#ef4444;
+  }
+  html,body{height:100%;background:radial-gradient(1200px 600px at 10% 10%, rgba(59,130,246,0.05), transparent), var(--bg); color:#e6eef8; margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto;}
+  .glass{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.04); backdrop-filter: blur(6px); }
+  .neon{ box-shadow: 0 6px 18px rgba(59,130,246,0.06); }
+  .small-muted{ color: var(--muted); font-size:0.88rem; }
+  .card-value{ font-weight:700; font-size:1.25rem; color:#e6eef8; }
+  .status-pill{ padding:6px 10px; border-radius:999px; font-size:0.82rem; background: rgba(255,255,255,0.02); }
+  .data-row{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,0.02); }
+  .key{ color:var(--muted); font-size:0.9rem; }
+  .val{ font-weight:600; }
+  .nav-link{ display:flex; gap:12px; align-items:center; padding:10px 12px; border-radius:8px; color:#cfe6ff; }
+  .nav-link:hover{ background:rgba(255,255,255,0.02); transform:translateX(4px); transition:all .15s; }
+  aside { position: fixed; top: 0; left: 0; height: 100vh; width: 18rem; overflow-y: auto; z-index: 50; padding: 1rem; }
+  main { margin-left: 18rem; padding: 1.5rem; }
+  .chart-card { padding:12px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015)); border:1px solid rgba(255,255,255,0.03); }
+  input[type="datetime-local"] { color-scheme: dark; }
 </style>
 </head>
+
 <body>
-
 <div class="min-h-screen flex">
-   <aside class="w-72 p-4">
-     <div class="glass rounded-2xl h-full p-4 flex flex-col neon">
-       <div class="mb-6">
-         <h2 class="text-2xl font-bold">PZEM SCADA</h2>
-         <p class="small-muted mt-1">Estilo uniforme — Todas las gráficas</p>
-       </div>
+  <aside class="w-72 p-4">
+    <div class="glass rounded-2xl h-full p-4 flex flex-col neon">
+      <div class="mb-6">
+        <h2 class="text-2xl font-bold">PZEM SCADA</h2>
+        <p class="small-muted mt-1">Tiempo real + histórico por rango</p>
+      </div>
 
-       <nav class="mt-4 flex-1">
-         <a href="#resumen" class="nav-link">🏠 Resumen</a>
-         <a href="#voltajes" class="nav-link">⚡ Voltajes</a>
-         <a href="#corrientes" class="nav-link">🔌 Corrientes</a>
-         <a href="#potencias" class="nav-link">🔋 Potencias Activas</a>
-         <a href="#reactivas" class="nav-link">↩️ Reactivas</a>
-         <a href="#aparente" class="nav-link">🔶 Aparente</a>
-         <a href="#fp" class="nav-link">🔁 FP</a>
-         <a href="#energias" class="nav-link">📊 Energías</a>
-       </nav>
+      <nav class="mt-4 flex-1">
+        <a href="#resumen" class="nav-link">🏠 Resumen</a>
+        <a href="#historico" class="nav-link">🕒 Histórico</a>
+        <a href="#voltajes" class="nav-link">⚡ Voltajes</a>
+        <a href="#corrientes" class="nav-link">🔌 Corrientes</a>
+        <a href="#potencias" class="nav-link">🔋 Potencias Activas</a>
+        <a href="#reactivas" class="nav-link">↩️ Reactivas</a>
+        <a href="#aparente" class="nav-link">🔶 Aparente</a>
+        <a href="#fp" class="nav-link">🔁 FP</a>
+        <a href="#energias" class="nav-link">📊 Energías</a>
+      </nav>
 
-       <div class="mt-auto text-xs small-muted">
-         <div>Últ. actualización: <span id="last-update">--:--:--</span></div>
-         <div class="mt-2">Servidor: <strong id="server-status" class="text-green-400">Conectado</strong></div>
-       </div>
-     </div>
-   </aside>
+      <div class="mt-auto text-xs small-muted">
+        <div>Últ. actualización: <span id="last-update">--:--:--</span></div>
+        <div class="mt-2">Servidor: <strong id="server-status" class="text-green-400">Conectado</strong></div>
+        <div class="mt-2">Modo: <strong id="mode-pill">Tiempo real</strong></div>
+      </div>
+    </div>
+  </aside>
 
-   <main class="flex-1">
-     <header class="flex items-center justify-between mb-6">
-       <div>
-         <h1 class="text-2xl font-semibold">SCADA PZEM — Todas las gráficas Uniformes</h1>
-         <p class="small-muted mt-1">Actualización automática cada 3s — Estética uniforme aplicada</p>
-       </div>
-       <div class="flex items-center gap-3">
-         <button id="btn-refresh" class="glass status-pill">Refrescar</button>
-       </div>
-     </header>
+  <main class="flex-1">
+    <header class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-semibold">SCADA PZEM — Tiempo real + Histórico</h1>
+        <p class="small-muted mt-1">Actualización automática cada 3s (en tiempo real)</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="btn-refresh" class="glass status-pill">Refrescar</button>
+      </div>
+    </header>
 
-     <section id="resumen" class="mb-6">
-       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-         <div class="glass rounded-xl p-4">
-           <div class="small-muted">Voltaje Fase A</div>
-           <div class="card-value" id="res-Va">-- V</div>
-           <div class="small-muted">Estado: <span id="res-status-volt" class="status-pill">--</span></div>
-         </div>
-         <div class="glass rounded-xl p-4">
-           <div class="small-muted">Corriente Fase A</div>
-           <div class="card-value" id="res-Ia">-- A</div>
-           <div class="small-muted">Estado: <span id="res-status-Ia" class="status-pill">--</span></div>
-         </div>
-         <div class="glass rounded-xl p-4">
-           <div class="small-muted">Potencia Total (P_Total)</div>
-           <div class="card-value" id="res-Pt">-- W</div>
-           <div class="small-muted">FP: <span id="res-FP">--</span></div>
-         </div>
-       </div>
-     </section>
+    <!-- RESUMEN -->
+    <section id="resumen" class="mb-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Voltaje Fase A</div>
+          <div class="card-value" id="res-Va">-- V</div>
+          <div class="small-muted">Estado: <span id="res-status-volt" class="status-pill">--</span></div>
+        </div>
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Corriente Fase A</div>
+          <div class="card-value" id="res-Ia">-- A</div>
+          <div class="small-muted">Estado: <span id="res-status-Ia" class="status-pill">--</span></div>
+        </div>
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Potencia Total (P_Total)</div>
+          <div class="card-value" id="res-Pt">-- W</div>
+          <div class="small-muted">FP: <span id="res-FP">--</span></div>
+        </div>
+      </div>
+    </section>
 
-     <section id="voltajes" class="mb-8">
-       <div class="flex items-center justify-between mb-3">
-         <div><h2 class="text-lg font-bold">Voltajes (V_A, V_B, V_C)</h2><p class="small-muted">Línea uniforme: Va, Vb, Vc</p></div>
-         <div class="small-muted">Últimos 30 puntos</div>
-       </div>
+    <!-- HISTÓRICO -->
+    <section id="historico" class="mb-6 glass rounded-xl p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold">Histórico por rango</h2>
+          <p class="small-muted">Selecciona Desde/Hasta y carga los datos para graficar el intervalo.</p>
+        </div>
+        <div class="small-muted">Recomendado: 10–60 minutos</div>
+      </div>
 
-       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-         <div class="glass rounded-xl p-4">
-           <div class="small-muted">Valores actuales</div>
-           <div class="mt-2">
-             <div class="data-row"><div class="key">V_A</div><div class="val" id="Va">--</div></div>
-             <div class="data-row"><div class="key">V_B</div><div class="val" id="Vb">--</div></div>
-             <div class="data-row"><div class="key">V_C</div><div class="val" id="Vc">--</div></div>
-             <div class="data-row"><div class="key">Vab (calc)</div><div class="val" id="Vab">--</div></div>
-             <div class="data-row"><div class="key">Vbc (calc)</div><div class="val" id="Vbc">--</div></div>
-             <div class="data-row"><div class="key">Vca (calc)</div><div class="val" id="Vca">--</div></div>
-           </div>
-         </div>
+      <div class="mt-4 grid grid-cols-1 lg:grid-cols-4 gap-3">
+        <div>
+          <div class="small-muted mb-1">Desde</div>
+          <input id="fromDT" type="datetime-local" class="glass w-full p-2 rounded-xl" />
+        </div>
+        <div>
+          <div class="small-muted mb-1">Hasta</div>
+          <input id="toDT" type="datetime-local" class="glass w-full p-2 rounded-xl" />
+        </div>
+        <div>
+          <div class="small-muted mb-1">Máx. puntos</div>
+          <input id="maxPoints" type="number" min="50" max="2000" value="300" class="glass w-full p-2 rounded-xl" />
+        </div>
+        <div class="flex gap-2 items-end">
+          <button id="btn-history" class="glass status-pill w-full">Ver histórico</button>
+          <button id="btn-realtime" class="glass status-pill w-full">Tiempo real</button>
+        </div>
+      </div>
+    </section>
 
-         <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
-           <canvas id="chartVoltajes" height="220"></canvas>
-         </div>
-       </div>
-     </section>
+    <!-- VOLTAJES -->
+    <section id="voltajes" class="mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <div><h2 class="text-lg font-bold">Voltajes (V_A, V_B, V_C)</h2><p class="small-muted">Línea uniforme</p></div>
+        <div class="small-muted">Últimos puntos</div>
+      </div>
 
-     <section id="corrientes" class="mb-8">
-       <div class="flex items-center justify-between mb-3">
-         <div><h2 class="text-lg font-bold">Corrientes (I_A,I_B,I_C)</h2><p class="small-muted">Tendencia uniforme</p></div>
-       </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">V_A</div><div class="val" id="Va">--</div></div>
+            <div class="data-row"><div class="key">V_B</div><div class="val" id="Vb">--</div></div>
+            <div class="data-row"><div class="key">V_C</div><div class="val" id="Vc">--</div></div>
+            <div class="data-row"><div class="key">Vab (calc)</div><div class="val" id="Vab">--</div></div>
+            <div class="data-row"><div class="key">Vbc (calc)</div><div class="val" id="Vbc">--</div></div>
+            <div class="data-row"><div class="key">Vca (calc)</div><div class="val" id="Vca">--</div></div>
+          </div>
+        </div>
 
-       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-         <div class="glass rounded-xl p-4">
-           <div class="small-muted">Valores actuales</div>
-           <div class="mt-2">
-             <div class="data-row"><div class="key">I_A</div><div class="val" id="Ia">--</div></div>
-             <div class="data-row"><div class="key">I_B</div><div class="val" id="Ib">--</div></div>
-             <div class="data-row"><div class="key">I_C</div><div class="val" id="Ic">--</div></div>
-           </div>
-         </div>
-         <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
-           <canvas id="chartCorrientes" height="220"></canvas>
-         </div>
-       </div>
-     </section>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartVoltajes" height="220"></canvas>
+        </div>
+      </div>
+    </section>
 
-     <section id="potencias" class="mb-8">
-       <div class="flex items-center justify-between mb-3">
-         <div><h2 class="text-lg font-bold">Potencias Activas (P_Act_A,P_Act_B,P_Act_C,P_Total)</h2><p class="small-muted">Barras estilo uniforme</p></div>
-       </div>
+    <!-- CORRIENTES -->
+    <section id="corrientes" class="mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <div><h2 class="text-lg font-bold">Corrientes (I_A,I_B,I_C)</h2><p class="small-muted">Tendencia</p></div>
+      </div>
 
-       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-         <div class="glass rounded-xl p-4">
-           <div class="small-muted">Valores actuales</div>
-           <div class="mt-2">
-             <div class="data-row"><div class="key">P_Act_A</div><div class="val" id="Pa">--</div></div>
-             <div class="data-row"><div class="key">P_Act_B</div><div class="val" id="Pb">--</div></div>
-             <div class="data-row"><div class="key">P_Act_C</div><div class="val" id="Pc">--</div></div>
-             <div class="data-row"><div class="key">P_Total</div><div class="val" id="P_Total">--</div></div>
-           </div>
-         </div>
-         <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
-           <canvas id="chartPotActivas" height="220"></canvas>
-         </div>
-       </div>
-     </section>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">I_A</div><div class="val" id="Ia">--</div></div>
+            <div class="data-row"><div class="key">I_B</div><div class="val" id="Ib">--</div></div>
+            <div class="data-row"><div class="key">I_C</div><div class="val" id="Ic">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartCorrientes" height="220"></canvas>
+        </div>
+      </div>
+    </section>
 
-     <section id="reactivas" class="mb-8">
-       <div class="flex items-center justify-between mb-3">
-         <div><h2 class="text-lg font-bold">Potencias Reactivas (P_Rea_A,P_Rea_B,P_Rea_C,Q_Total)</h2></div>
-       </div>
-       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-         <div class="glass rounded-xl p-4">
-           <div class="small-muted">Valores actuales</div>
-           <div class="mt-2">
-             <div class="data-row"><div class="key">P_Rea_A</div><div class="val" id="Qa">--</div></div>
-             <div class="data-row"><div class="key">P_Rea_B</div><div class="val" id="Qb">--</div></div>
-             <div class="data-row"><div class="key">P_Rea_C</div><div class="val" id="Qc">--</div></div>
-             <div class="data-row"><div class="key">Q_Total</div><div class="val" id="Q_Total">--</div></div>
-           </div>
-         </div>
-         <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
-           <canvas id="chartPotReactivas" height="220"></canvas>
-         </div>
-       </div>
-     </section>
+    <!-- POTENCIAS ACTIVAS -->
+    <section id="potencias" class="mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <div><h2 class="text-lg font-bold">Potencias Activas (P_Act_A,P_Act_B,P_Act_C)</h2><p class="small-muted">Barras</p></div>
+      </div>
 
-     <section id="aparente" class="mb-8">
-       <div class="flex items-center justify-between mb-3">
-         <div><h2 class="text-lg font-bold">Potencia Aparente (P_App_A,P_App_B,P_App_C,S_Total)</h2></div>
-       </div>
-       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-         <div class="glass rounded-xl p-4">
-           <div class="small-muted">Valores actuales</div>
-           <div class="mt-2">
-             <div class="data-row"><div class="key">P_App_A</div><div class="val" id="Sa">--</div></div>
-             <div class="data-row"><div class="key">P_App_B</div><div class="val" id="Sb">--</div></div>
-             <div class="data-row"><div class="key">P_App_C</div><div class="val" id="Sc">--</div></div>
-             <div class="data-row"><div class="key">S_Total</div><div class="val" id="S_Total">--</div></div>
-           </div>
-         </div>
-         <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
-           <canvas id="chartAparente" height="220"></canvas>
-         </div>
-       </div>
-     </section>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">P_Act_A</div><div class="val" id="Pa">--</div></div>
+            <div class="data-row"><div class="key">P_Act_B</div><div class="val" id="Pb">--</div></div>
+            <div class="data-row"><div class="key">P_Act_C</div><div class="val" id="Pc">--</div></div>
+            <div class="data-row"><div class="key">P_Total</div><div class="val" id="P_Total">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartPotActivas" height="220"></canvas>
+        </div>
+      </div>
+    </section>
 
-     <section id="fp" class="mb-8">
-       <div class="flex items-center justify-between mb-3">
-         <div><h2 class="text-lg font-bold">Factor de Potencia (FP_A,FP_B,FP_C,FP_Total)</h2></div>
-       </div>
-       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-         <div class="glass rounded-xl p-4">
-           <div class="small-muted">Valores actuales</div>
-           <div class="mt-2">
-             <div class="data-row"><div class="key">FP_A</div><div class="val" id="FPa">--</div></div>
-             <div class="data-row"><div class="key">FP_B</div><div class="val" id="FPb">--</div></div>
-             <div class="data-row"><div class="key">FP_C</div><div class="val" id="FPc">--</div></div>
-             <div class="data-row"><div class="key">FP_Total</div><div class="val" id="FP_Total">--</div></div>
-           </div>
-         </div>
-         <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
-           <canvas id="chartFP" height="220"></canvas>
-         </div>
-       </div>
-     </section>
+    <!-- REACTIVAS -->
+    <section id="reactivas" class="mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <div><h2 class="text-lg font-bold">Potencias Reactivas (P_Rea_A,P_Rea_B,P_Rea_C)</h2></div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">P_Rea_A</div><div class="val" id="Qa">--</div></div>
+            <div class="data-row"><div class="key">P_Rea_B</div><div class="val" id="Qb">--</div></div>
+            <div class="data-row"><div class="key">P_Rea_C</div><div class="val" id="Qc">--</div></div>
+            <div class="data-row"><div class="key">Q_Total</div><div class="val" id="Q_Total">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartPotReactivas" height="220"></canvas>
+        </div>
+      </div>
+    </section>
 
-     <section id="energias" class="mb-12">
-       <div class="flex items-center justify-between mb-3">
-         <div><h2 class="text-lg font-bold">Energías (E_Act_Total, E_Rea_Total, E_App_Total)</h2></div>
-       </div>
-       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-         <div class="glass rounded-xl p-4">
-           <div class="small-muted">Valores actuales</div>
-           <div class="mt-2">
-             <div class="data-row"><div class="key">E_Act_Total</div><div class="val" id="E_Pt">--</div></div>
-             <div class="data-row"><div class="key">E_Rea_Total</div><div class="val" id="E_Qt">--</div></div>
-             <div class="data-row"><div class="key">E_App_Total</div><div class="val" id="E_St">--</div></div>
-           </div>
-         </div>
-         <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
-           <canvas id="chartEnergias" height="220"></canvas>
-         </div>
-       </div>
-     </section>
+    <!-- APARENTE -->
+    <section id="aparente" class="mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <div><h2 class="text-lg font-bold">Potencia Aparente (P_App_A,P_App_B,P_App_C)</h2></div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">P_App_A</div><div class="val" id="Sa">--</div></div>
+            <div class="data-row"><div class="key">P_App_B</div><div class="val" id="Sb">--</div></div>
+            <div class="data-row"><div class="key">P_App_C</div><div class="val" id="Sc">--</div></div>
+            <div class="data-row"><div class="key">S_Total</div><div class="val" id="S_Total">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartAparente" height="220"></canvas>
+        </div>
+      </div>
+    </section>
 
-   </main>
+    <!-- FP -->
+    <section id="fp" class="mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <div><h2 class="text-lg font-bold">Factor de Potencia (FP_A,FP_B,FP_C)</h2></div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">FP_A</div><div class="val" id="FPa">--</div></div>
+            <div class="data-row"><div class="key">FP_B</div><div class="val" id="FPb">--</div></div>
+            <div class="data-row"><div class="key">FP_C</div><div class="val" id="FPc">--</div></div>
+            <div class="data-row"><div class="key">FP_Total</div><div class="val" id="FP_Total">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartFP" height="220"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ENERGÍAS -->
+    <section id="energias" class="mb-12">
+      <div class="flex items-center justify-between mb-3">
+        <div><h2 class="text-lg font-bold">Energías (E_Act_Total, E_Rea_Total, E_App_Total)</h2></div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">E_Act_Total</div><div class="val" id="E_Pt">--</div></div>
+            <div class="data-row"><div class="key">E_Rea_Total</div><div class="val" id="E_Qt">--</div></div>
+            <div class="data-row"><div class="key">E_App_Total</div><div class="val" id="E_St">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartEnergias" height="220"></canvas>
+        </div>
+      </div>
+    </section>
+  </main>
 </div>
 
 <script>
 /* =======================
    CONFIG
    ======================= */
-// CRÍTICO: USA AQUÍ EL URL DE TU WEB APP DESPLEGADA DE GOOGLE APPS SCRIPT
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz-jPO_x4ET5kNeDTrQVnLBAYpiMMux7I5TGPCnEYHd-8stih6ci2OC4iESWrA_Uk5q/exec";
+// ⚠️ PON AQUÍ TU URL REAL DEL WEB APP (termina en /exec)
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyTfspoybGjxme9Ny26sQo2eJjRXfON1BysdBjvxoAYBXtoqbdcS0AATq-HQ0aB2KzD/exec";
 
-/* * CORRECCIÓN: Lista de claves solicitadas al Backend. 
- * Estas deben coincidir con las claves del 'map' en el Apps Script corregido.
- */
 const COLUMNS = [
-  "Va","Vb","Vc","Vab","Vbc","Vca", // Vab, Vbc, Vca son calculadas por el Apps Script
+  "Va","Vb","Vc","Vab","Vbc","Vca",
   "Ia","Ib","Ic",
   "Fa","Fb","Fc",
-  "Pa","Pb","Pc", // Potencia Activa
-  "Qa","Qb","Qc", // Potencia Reactiva
-  "Sa","Sb","Sc", // Potencia Aparente
+  "Pa","Pb","Pc",
+  "Qa","Qb","Qc",
+  "Sa","Sb","Sc",
   "FPa","FPb","FPc",
-  "Pt","Qt","St","FPt", // Totales (P_Total, Q_Total, S_Total, FP_Total)
-  "E_Pt","E_Qt","E_St" // Energías Totales (E_Act_Total, E_Rea_Total, E_App_Total)
+  "Pt","Qt","St","FPt",
+  "E_Pt","E_Qt","E_St"
 ];
 
-/* Estética unificada para Chart.js */
+/* Estética */
 const colors = {
   Va: '#60a5fa', Vb: '#f472b6', Vc: '#f59e0b',
   Ia: '#34d399', Ib: '#60a5fa', Ic: '#f472b6',
@@ -291,27 +310,15 @@ const commonOptions = {
   responsive: true,
   interaction: { mode: 'index', intersect: false },
   plugins: {
-    legend: {
-      labels: { color: '#cfe6ff', boxWidth: 12, boxHeight: 6 }
-    },
-    tooltip: {
-      backgroundColor: 'rgba(2,6,23,0.9)',
-      titleColor: '#fff',
-      bodyColor: '#fff'
-    }
+    legend: { labels: { color: '#cfe6ff', boxWidth: 12, boxHeight: 6 } },
+    tooltip: { backgroundColor: 'rgba(2,6,23,0.9)', titleColor: '#fff', bodyColor: '#fff' }
   },
   scales: {
-    x: {
-      ticks: { color: '#9fb5ff', maxRotation: 45, minRotation: 20 },
-      grid: { color: 'rgba(255,255,255,0.02)' }
-    },
-    y: {
-      ticks: { color: '#9fb5ff' },
-      grid: { color: 'rgba(255,255,255,0.03)' }
-    }
+    x: { ticks: { color: '#9fb5ff', maxRotation: 45, minRotation: 20 }, grid: { color: 'rgba(255,255,255,0.02)' } },
+    y: { ticks: { color: '#9fb5ff' }, grid: { color: 'rgba(255,255,255,0.03)' } }
   },
   elements: {
-    point: { radius: 4, hoverRadius:6, borderWidth:2, backgroundColor: '#0b1221' },
+    point: { radius: 4, hoverRadius: 6, borderWidth: 2, backgroundColor: '#0b1221' },
     line: { tension: 0.35, borderWidth: 2 }
   },
   maintainAspectRatio: false
@@ -320,31 +327,31 @@ const commonOptions = {
 /* Chart holders */
 let charts = {};
 let labels = [];
-const maxPoints = 30;
+const maxPointsRT = 30;
 
 /* Data buffers */
 const buf = {
   Va:[], Vb:[], Vc:[],
   Ia:[], Ib:[], Ic:[],
-  Pa:[], Pb:[], Pc:[],
-  FPa:[], FPb:[], FPc:[],
-  Ept:[], Eq:[], Es:[] // energies if needed
+  FPa:[], FPb:[], FPc:[]
 };
 
-/* Setup charts with uniform style */
+/* Helpers */
+const num = v => (v === null || v === undefined || v === "" ? 0 : Number(v));
+const fmt = v => (v === null || v === undefined || v === "" ? "--" : (isNaN(Number(v)) ? v : Number(v).toFixed(2)));
+
+/* Setup charts */
 function setupCharts(){
-  // Voltajes (line)
   charts.volt = new Chart(document.getElementById('chartVoltajes').getContext('2d'), {
     type: 'line',
     data: { labels, datasets: [
-      { label: 'V_A', data: buf.Va, borderColor: colors.Va, backgroundColor: 'transparent', pointBackgroundColor: colors.Va },
-      { label: 'V_B', data: buf.Vb, borderColor: colors.Vb, backgroundColor: 'transparent', pointBackgroundColor: colors.Vb },
-      { label: 'V_C', data: buf.Vc, borderColor: colors.Vc, backgroundColor: 'transparent', pointBackgroundColor: colors.Vc }
+      { label: 'V_A', data: buf.Va, borderColor: colors.Va, pointBackgroundColor: colors.Va },
+      { label: 'V_B', data: buf.Vb, borderColor: colors.Vb, pointBackgroundColor: colors.Vb },
+      { label: 'V_C', data: buf.Vc, borderColor: colors.Vc, pointBackgroundColor: colors.Vc }
     ]},
     options: commonOptions
   });
 
-  // Corrientes (line)
   charts.curr = new Chart(document.getElementById('chartCorrientes').getContext('2d'), {
     type: 'line',
     data: { labels, datasets: [
@@ -355,28 +362,24 @@ function setupCharts(){
     options: commonOptions
   });
 
-  // Potencias Activas (bar)
   charts.pact = new Chart(document.getElementById('chartPotActivas').getContext('2d'), {
     type: 'bar',
     data: { labels: ['P_Act_A','P_Act_B','P_Act_C'], datasets: [{ label: 'W', data: [0,0,0], backgroundColor: [colors.Pa, colors.Pb, colors.Pc] }]},
-    options: Object.assign({}, commonOptions, { indexAxis: 'x', elements: { bar: { borderRadius: 6 } } })
+    options: Object.assign({}, commonOptions, { elements: { bar: { borderRadius: 6 } } })
   });
 
-  // Reactivas (bar)
   charts.q = new Chart(document.getElementById('chartPotReactivas').getContext('2d'), {
     type: 'bar',
     data: { labels: ['P_Rea_A','P_Rea_B','P_Rea_C'], datasets: [{ label: 'VAR', data: [0,0,0], backgroundColor: [colors.Qa, colors.Qb, colors.Qc] }]},
     options: Object.assign({}, commonOptions, { elements: { bar: { borderRadius: 6 } } })
   });
 
-  // Aparente (bar)
   charts.s = new Chart(document.getElementById('chartAparente').getContext('2d'), {
     type: 'bar',
     data: { labels: ['P_App_A','P_App_B','P_App_C'], datasets: [{ label: 'VA', data: [0,0,0], backgroundColor: [colors.Sa, colors.Sb, colors.Sc] }]},
     options: Object.assign({}, commonOptions, { elements: { bar: { borderRadius: 6 } } })
   });
 
-  // FP (line)
   charts.fp = new Chart(document.getElementById('chartFP').getContext('2d'), {
     type: 'line',
     data: { labels, datasets: [
@@ -387,7 +390,6 @@ function setupCharts(){
     options: commonOptions
   });
 
-  // Energías (pie)
   charts.energ = new Chart(document.getElementById('chartEnergias').getContext('2d'), {
     type: 'pie',
     data: { labels: ['E_Act_Total','E_Rea_Total','E_App_Total'], datasets: [{ data: [0,0,0], backgroundColor: [colors.Va, colors.Vb, colors.Vc] }]},
@@ -395,99 +397,115 @@ function setupCharts(){
   });
 }
 
-/* Format helpers */
-const num = v => (v === null || v === undefined || v === "" ? 0 : Number(v));
-const fmt = v => (v === null || v === undefined || v === "" ? "--" : (isNaN(Number(v)) ? v : Number(v).toFixed(2)));
+function resetBuffers(){
+  labels.length = 0;
+  Object.keys(buf).forEach(k => buf[k].length = 0);
+}
 
-/* Fetch & update flow */
+function setMode(text){
+  document.getElementById('mode-pill').textContent = text;
+}
+
+/* -----------------------
+   TIEMPO REAL
+----------------------- */
 let isFetching = false;
+let rtTimer = null;
+
 async function fetchAndUpdate(){
   if (isFetching) return;
   isFetching = true;
-  document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
 
   try {
     const cols = COLUMNS.join(',');
     const res = await fetch(`${GAS_WEB_APP_URL}?colsToQuery=${encodeURIComponent(cols)}`, { cache: 'no-store' });
     const json = await res.json();
-
     if (json.status !== 'success') throw new Error(json.error || 'Backend error');
 
     const d = json.data || {};
+    const label = d._ts ? new Date(d._ts).toLocaleTimeString() : new Date().toLocaleTimeString();
+    document.getElementById('last-update').textContent = label;
 
-    /* --- INICIO CORRECCIÓN: Usar las claves cortas del Backend (d.Va, d.Pa, d.Pt, etc.) --- */
-
-    // Voltajes
+    // UI valores
     document.getElementById('Va').textContent = fmt(d.Va);
     document.getElementById('Vb').textContent = fmt(d.Vb);
     document.getElementById('Vc').textContent = fmt(d.Vc);
-    // Calculated line voltages (Vab,Vbc,Vca son calculadas por el backend)
     document.getElementById('Vab').textContent = fmt(d.Vab);
     document.getElementById('Vbc').textContent = fmt(d.Vbc);
     document.getElementById('Vca').textContent = fmt(d.Vca);
 
-    // Corrientes
     document.getElementById('Ia').textContent = fmt(d.Ia);
     document.getElementById('Ib').textContent = fmt(d.Ib);
     document.getElementById('Ic').textContent = fmt(d.Ic);
 
-    // Potencias activas
     document.getElementById('Pa').textContent = fmt(d.Pa);
     document.getElementById('Pb').textContent = fmt(d.Pb);
     document.getElementById('Pc').textContent = fmt(d.Pc);
-    document.getElementById('P_Total').textContent = fmt(d.Pt); // Clave Pt
+    document.getElementById('P_Total').textContent = fmt(d.Pt);
 
-    // Reactivas
     document.getElementById('Qa').textContent = fmt(d.Qa);
     document.getElementById('Qb').textContent = fmt(d.Qb);
     document.getElementById('Qc').textContent = fmt(d.Qc);
-    document.getElementById('Q_Total').textContent = fmt(d.Qt); // Clave Qt
+    document.getElementById('Q_Total').textContent = fmt(d.Qt);
 
-    // Aparente
     document.getElementById('Sa').textContent = fmt(d.Sa);
     document.getElementById('Sb').textContent = fmt(d.Sb);
     document.getElementById('Sc').textContent = fmt(d.Sc);
-    document.getElementById('S_Total').textContent = fmt(d.St); // Clave St
+    document.getElementById('S_Total').textContent = fmt(d.St);
 
-    // FP
     document.getElementById('FPa').textContent = fmt(d.FPa);
     document.getElementById('FPb').textContent = fmt(d.FPb);
     document.getElementById('FPc').textContent = fmt(d.FPc);
-    document.getElementById('FP_Total').textContent = fmt(d.FPt); // Clave FPt
+    document.getElementById('FP_Total').textContent = fmt(d.FPt);
 
-    // Energías
     document.getElementById('E_Pt').textContent = fmt(d.E_Pt);
     document.getElementById('E_Qt').textContent = fmt(d.E_Qt);
     document.getElementById('E_St').textContent = fmt(d.E_St);
 
-    // top summary (uso de claves cortas)
     document.getElementById('res-Va').textContent = d.Va ? fmt(d.Va) + ' V' : '--';
     document.getElementById('res-Ia').textContent = d.Ia ? fmt(d.Ia) + ' A' : '--';
     document.getElementById('res-Pt').textContent = d.Pt ? fmt(d.Pt) + ' W' : '--';
     document.getElementById('res-FP').textContent = d.FPt ? fmt(d.FPt) : '--';
-    
-    // server status
+
     document.getElementById('server-status').textContent = 'Conectado';
     document.getElementById('server-status').classList.remove('text-red-400');
     document.getElementById('server-status').classList.add('text-green-400');
 
-    // push to buffers & update charts (pasar solo las claves cortas)
-    const label = new Date().toLocaleTimeString();
-    pushPoint(label,
-      num(d.Va), num(d.Vb), num(d.Vc),
-      num(d.Ia), num(d.Ib), num(d.Ic),
-      num(d.Pa), num(d.Pb), num(d.Pc),
-      num(d.Qa), num(d.Qb), num(d.Qc),
-      num(d.Sa), num(d.Sb), num(d.Sc),
-      num(d.FPa), num(d.FPb), num(d.FPc),
-      num(d.E_Pt), num(d.E_Qt), num(d.E_St),
-      num(d.Pt) // P_Total
-    );
+    // push a gráficos tiempo real (mantiene 30)
+    labels.push(label);
+    buf.Va.push(num(d.Va)); buf.Vb.push(num(d.Vb)); buf.Vc.push(num(d.Vc));
+    buf.Ia.push(num(d.Ia)); buf.Ib.push(num(d.Ib)); buf.Ic.push(num(d.Ic));
+    buf.FPa.push(num(d.FPa)); buf.FPb.push(num(d.FPb)); buf.FPc.push(num(d.FPc));
 
-    /* --- FIN CORRECCIÓN --- */
+    if (labels.length > maxPointsRT){
+      labels.shift();
+      Object.keys(buf).forEach(k => buf[k].shift());
+    }
+
+    // update charts
+    charts.volt.data.labels = labels;
+    charts.volt.update();
+
+    charts.curr.data.labels = labels;
+    charts.curr.update();
+
+    charts.fp.data.labels = labels;
+    charts.fp.update();
+
+    charts.pact.data.datasets[0].data = [ num(d.Pa), num(d.Pb), num(d.Pc) ];
+    charts.pact.update();
+
+    charts.q.data.datasets[0].data = [ num(d.Qa), num(d.Qb), num(d.Qc) ];
+    charts.q.update();
+
+    charts.s.data.datasets[0].data = [ num(d.Sa), num(d.Sb), num(d.Sc) ];
+    charts.s.update();
+
+    charts.energ.data.datasets[0].data = [ num(d.E_Pt), num(d.E_Qt), num(d.E_St) ];
+    charts.energ.update();
 
   } catch (err) {
-    console.error('Fetch failed', err);
+    console.error(err);
     document.getElementById('server-status').textContent = 'Error';
     document.getElementById('server-status').classList.remove('text-green-400');
     document.getElementById('server-status').classList.add('text-red-400');
@@ -496,66 +514,143 @@ async function fetchAndUpdate(){
   }
 }
 
-/* pushPoint updates buffers and charts uniformly */
-function pushPoint(label, Va, Vb, Vc, Ia, Ib, Ic, Pa, Pb, Pc, Qa, Qb, Qc, Sa, Sb, Sc, FPa, FPb, FPc, Ept, Eq, Es, Pt){
-  labels.push(label);
-  buf.Va.push(Va); buf.Vb.push(Vb); buf.Vc.push(Vc);
-  buf.Ia.push(Ia); buf.Ib.push(Ib); buf.Ic.push(Ic);
-  buf.Pa.push(Pa); buf.Pb.push(Pb); buf.Pc.push(Pc);
-  buf.FPa.push(FPa); buf.FPb.push(FPb); buf.FPc.push(FPc);
-  buf.Ept.push(Ept); buf.Eq.push(Eq); buf.Es.push(Es);
+/* -----------------------
+   HISTÓRICO POR RANGO
+----------------------- */
+async function fetchHistory(){
+  const from = document.getElementById("fromDT").value;
+  const to = document.getElementById("toDT").value;
+  const maxPoints = document.getElementById("maxPoints").value || 300;
 
-  // trim to maxPoints
-  if (labels.length > maxPoints){
-    labels.shift();
-    Object.keys(buf).forEach(k => buf[k].shift());
+  if (!from || !to){
+    alert("Selecciona 'Desde' y 'Hasta'");
+    return;
   }
 
-  // update datasets (uniform style)
-  charts.volt.data.labels = labels;
-  charts.volt.data.datasets[0].data = buf.Va;
-  charts.volt.data.datasets[1].data = buf.Vb;
-  charts.volt.data.datasets[2].data = buf.Vc;
-  charts.volt.update();
+  const cols = COLUMNS.join(',');
+  const url = `${GAS_WEB_APP_URL}?mode=history&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&maxPoints=${encodeURIComponent(maxPoints)}&colsToQuery=${encodeURIComponent(cols)}`;
 
-  charts.curr.data.labels = labels;
-  charts.curr.data.datasets[0].data = buf.Ia;
-  charts.curr.data.datasets[1].data = buf.Ib;
-  charts.curr.data.datasets[2].data = buf.Ic;
-  charts.curr.update();
+  document.getElementById('server-status').textContent = 'Cargando histórico...';
+  document.getElementById('server-status').classList.remove('text-red-400');
+  document.getElementById('server-status').classList.add('text-green-400');
 
-  // CORRECCIÓN: Usamos los valores instantáneos recibidos (Pa, Pb, Pc)
-  charts.pact.data.datasets[0].data = [ Pa || 0, Pb || 0, Pc || 0 ];
-  charts.pact.update();
+  try{
+    const res = await fetch(url, { cache: "no-store" });
+    const json = await res.json();
+    if (json.status !== "success") throw new Error(json.error || "Error histórico");
 
-  // CORRECCIÓN: Usamos los valores instantáneos recibidos (Qa, Qb, Qc)
-  charts.q.data.datasets[0].data = [ Qa || 0, Qb || 0, Qc || 0 ];
-  charts.q.update();
+    resetBuffers();
 
-  // CORRECCIÓN: Usamos los valores instantáneos recibidos (Sa, Sb, Sc)
-  charts.s.data.datasets[0].data = [ Sa || 0, Sb || 0, Sc || 0 ];
-  charts.s.update();
+    // labels (hora real de cada fila)
+    json.labels.forEach(ts => labels.push(new Date(ts).toLocaleTimeString()));
 
-  charts.fp.data.labels = labels;
-  charts.fp.data.datasets[0].data = buf.FPa;
-  charts.fp.data.datasets[1].data = buf.FPb;
-  charts.fp.data.datasets[2].data = buf.FPc;
-  charts.fp.update();
+    const s = json.series || {};
+    // Llenar buffers de líneas
+    (s.Va || []).forEach(v => buf.Va.push(Number(v)||0));
+    (s.Vb || []).forEach(v => buf.Vb.push(Number(v)||0));
+    (s.Vc || []).forEach(v => buf.Vc.push(Number(v)||0));
 
-  // CORRECCIÓN: Usamos los valores instantáneos recibidos (Ept, Eq, Es)
-  charts.energ.data.datasets[0].data = [ Ept || 0, Eq || 0, Es || 0 ];
-  charts.energ.update();
+    (s.Ia || []).forEach(v => buf.Ia.push(Number(v)||0));
+    (s.Ib || []).forEach(v => buf.Ib.push(Number(v)||0));
+    (s.Ic || []).forEach(v => buf.Ic.push(Number(v)||0));
+
+    (s.FPa || []).forEach(v => buf.FPa.push(Number(v)||0));
+    (s.FPb || []).forEach(v => buf.FPb.push(Number(v)||0));
+    (s.FPc || []).forEach(v => buf.FPc.push(Number(v)||0));
+
+    // update líneas
+    charts.volt.data.labels = labels; charts.volt.update();
+    charts.curr.data.labels = labels; charts.curr.update();
+    charts.fp.data.labels = labels; charts.fp.update();
+
+    // Para barras/pie: mostrar el último valor del rango
+    const last = arr => (arr && arr.length ? Number(arr[arr.length-1]) : 0);
+
+    charts.pact.data.datasets[0].data = [ last(s.Pa), last(s.Pb), last(s.Pc) ];
+    charts.pact.update();
+
+    charts.q.data.datasets[0].data = [ last(s.Qa), last(s.Qb), last(s.Qc) ];
+    charts.q.update();
+
+    charts.s.data.datasets[0].data = [ last(s.Sa), last(s.Sb), last(s.Sc) ];
+    charts.s.update();
+
+    charts.energ.data.datasets[0].data = [ last(s.E_Pt), last(s.E_Qt), last(s.E_St) ];
+    charts.energ.update();
+
+    // También actualizamos los “valores actuales” mostrando el último del rango
+    document.getElementById('Va').textContent = fmt(last(s.Va));
+    document.getElementById('Vb').textContent = fmt(last(s.Vb));
+    document.getElementById('Vc').textContent = fmt(last(s.Vc));
+
+    document.getElementById('Ia').textContent = fmt(last(s.Ia));
+    document.getElementById('Ib').textContent = fmt(last(s.Ib));
+    document.getElementById('Ic').textContent = fmt(last(s.Ic));
+
+    document.getElementById('Pa').textContent = fmt(last(s.Pa));
+    document.getElementById('Pb').textContent = fmt(last(s.Pb));
+    document.getElementById('Pc').textContent = fmt(last(s.Pc));
+    document.getElementById('P_Total').textContent = fmt(last(s.Pt));
+
+    document.getElementById('Qa').textContent = fmt(last(s.Qa));
+    document.getElementById('Qb').textContent = fmt(last(s.Qb));
+    document.getElementById('Qc').textContent = fmt(last(s.Qc));
+    document.getElementById('Q_Total').textContent = fmt(last(s.Qt));
+
+    document.getElementById('Sa').textContent = fmt(last(s.Sa));
+    document.getElementById('Sb').textContent = fmt(last(s.Sb));
+    document.getElementById('Sc').textContent = fmt(last(s.Sc));
+    document.getElementById('S_Total').textContent = fmt(last(s.St));
+
+    document.getElementById('FPa').textContent = fmt(last(s.FPa));
+    document.getElementById('FPb').textContent = fmt(last(s.FPb));
+    document.getElementById('FPc').textContent = fmt(last(s.FPc));
+    document.getElementById('FP_Total').textContent = fmt(last(s.FPt));
+
+    document.getElementById('E_Pt').textContent = fmt(last(s.E_Pt));
+    document.getElementById('E_Qt').textContent = fmt(last(s.E_Qt));
+    document.getElementById('E_St').textContent = fmt(last(s.E_St));
+
+    document.getElementById('res-Va').textContent = fmt(last(s.Va)) + ' V';
+    document.getElementById('res-Ia').textContent = fmt(last(s.Ia)) + ' A';
+    document.getElementById('res-Pt').textContent = fmt(last(s.Pt)) + ' W';
+    document.getElementById('res-FP').textContent = fmt(last(s.FPt));
+
+    document.getElementById('server-status').textContent = `Histórico (${json.count} pts)`;
+    document.getElementById('last-update').textContent = labels.length ? labels[labels.length-1] : '--:--:--';
+
+  } catch(err){
+    console.error(err);
+    document.getElementById('server-status').textContent = 'Error histórico';
+    document.getElementById('server-status').classList.remove('text-green-400');
+    document.getElementById('server-status').classList.add('text-red-400');
+  }
 }
 
 /* Init */
 document.addEventListener('DOMContentLoaded', () => {
   setupCharts();
+
   document.getElementById('btn-refresh').addEventListener('click', fetchAndUpdate);
-  // start loop
+
+  document.getElementById('btn-history').addEventListener('click', async () => {
+    if (rtTimer) clearInterval(rtTimer);
+    setMode("Histórico");
+    await fetchHistory();
+  });
+
+  document.getElementById('btn-realtime').addEventListener('click', () => {
+    if (rtTimer) clearInterval(rtTimer);
+    setMode("Tiempo real");
+    fetchAndUpdate();
+    rtTimer = setInterval(fetchAndUpdate, 3000);
+  });
+
+  // Arranque por defecto
+  setMode("Tiempo real");
   fetchAndUpdate();
-  setInterval(fetchAndUpdate, 3000);
+  rtTimer = setInterval(fetchAndUpdate, 3000);
 });
 </script>
-
 </body>
 </html>
