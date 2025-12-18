@@ -1,10 +1,177 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="es">
 <head>
-    <title>Mi Segunda Página</title>
-    <meta charset="UTF-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SCADA - Fases (ESP32)</title>
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#111b31; --line:rgba(255,255,255,.10);
+      --text:#e8eefc; --muted:rgba(232,238,252,.70);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
+    .topbar{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:14px 16px;border-bottom:1px solid var(--line);
+      position:sticky;top:0;background:rgba(11,18,32,.92);backdrop-filter:blur(10px)
+    }
+    .title{font-weight:900;letter-spacing:.6px}
+    .sub{font-size:12px;color:var(--muted);margin-top:2px}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    .grid{display:grid;gap:12px;grid-template-columns:1fr}
+    @media(min-width:900px){.grid{grid-template-columns:repeat(3,1fr)}}
+    .card{
+      background:var(--panel);border:1px solid var(--line);border-radius:16px;
+      padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.25)
+    }
+    .label{font-size:12px;color:var(--muted)}
+    .kpi{margin-top:6px;font-size:34px;font-weight:900}
+    .meta{margin-top:8px;font-size:11px;color:rgba(232,238,252,.55)}
+    .pre{
+      margin:10px 0 0;padding:10px;border-radius:12px;
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);
+      color:rgba(232,238,252,.85);overflow:auto;max-height:240px;font-size:12px
+    }
+    .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .lamp{
+      width:18px;height:18px;border-radius:50%;
+      background:#666;border:1px solid rgba(255,255,255,.12);
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,.2);
+    }
+  </style>
 </head>
+
 <body>
-    <p style="font-size: 32px; color: blue;">Hola Mundo</p>
+  <header class="topbar">
+    <div>
+      <div class="title">SCADA</div>
+      <div class="sub" id="status">Desconectado</div>
+    </div>
+    <div class="sub" id="clock">--</div>
+  </header>
+
+  <main class="wrap">
+    <section class="grid">
+      <div class="card">
+        <div class="label">Fase A</div>
+        <div class="kpi"><span id="fa">--</span></div>
+        <div class="meta">TAG: fa</div>
+      </div>
+
+      <div class="card">
+        <div class="label">Fase B</div>
+        <div class="kpi"><span id="fb">--</span></div>
+        <div class="meta">TAG: fb</div>
+      </div>
+
+      <div class="card">
+        <div class="label">Fase C</div>
+        <div class="kpi"><span id="fc">--</span></div>
+        <div class="meta">TAG: fc</div>
+      </div>
+
+      <div class="card">
+        <div class="label">Fase D</div>
+        <div class="kpi"><span id="fd">--</span></div>
+        <div class="meta">TAG: fd</div>
+      </div>
+
+      <div class="card">
+        <div class="row">
+          <div>
+            <div class="label">Estado conexión</div>
+            <div class="kpi" style="font-size:18px" id="connTxt">--</div>
+            <div class="meta">Polling automático</div>
+          </div>
+          <div class="lamp" id="connLamp"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="label">Último registro (debug)</div>
+        <pre class="pre" id="raw">--</pre>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ===============================
+    // SCADA Frontend (1 archivo)
+    // ===============================
+
+    // ✅ CAMBIA ESTO por tu URL de Apps Script desplegado (termina en /exec)
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzOdJf7FC5hVtlSzsboCthMf5NGqv8--XWhf1MVPL-rddqCE9sIyrFX6sPcSzflGpPC/exec";
+
+    const POLL_MS = 2000;
+
+    function setStatus(text) {
+      document.getElementById("status").textContent = text;
+      document.getElementById("clock").textContent = new Date().toLocaleString();
+    }
+
+    function setConn(ok) {
+      document.getElementById("connTxt").textContent = ok ? "CONECTADO" : "DESCONECTADO";
+      document.getElementById("connLamp").style.background = ok ? "rgba(46,229,157,.95)" : "#666";
+    }
+
+    // JSONP para evitar problemas CORS en GitHub Pages
+    function jsonp(url) {
+      return new Promise((resolve, reject) => {
+        const cbName = "cb_" + Math.random().toString(36).slice(2);
+        window[cbName] = (data) => { resolve(data); cleanup(); };
+
+        const s = document.createElement("script");
+        s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cbName + "&_=" + Date.now();
+        s.onerror = () => { reject(new Error("No se pudo conectar")); cleanup(); };
+        document.body.appendChild(s);
+
+        function cleanup() {
+          try { delete window[cbName]; } catch(e) {}
+          s.remove();
+        }
+      });
+    }
+
+    function render(payload) {
+      if (!payload || payload.ok === false) {
+        setConn(false);
+        setStatus("Error: " + (payload?.error || "respuesta inválida"));
+        return;
+      }
+
+      const latest = payload.latest;
+      if (!latest) {
+        setConn(true);
+        setStatus("Conectado • sin datos aún");
+        return;
+      }
+
+      document.getElementById("fa").textContent = latest.fa ?? "--";
+      document.getElementById("fb").textContent = latest.fb ?? "--";
+      document.getElementById("fc").textContent = latest.fc ?? "--";
+      document.getElementById("fd").textContent = latest.fd ?? "--";
+
+      document.getElementById("raw").textContent = JSON.stringify(payload, null, 2);
+
+      setConn(true);
+      setStatus("Conectado • " + new Date(payload.ts).toLocaleTimeString());
+    }
+
+    async function loop() {
+      try {
+        const url = WEBAPP_URL + (WEBAPP_URL.includes("?") ? "&" : "?") + "action=latest";
+        const payload = await jsonp(url);
+        render(payload);
+      } catch (e) {
+        setConn(false);
+        setStatus("Desconectado • " + e.message);
+      } finally {
+        setTimeout(loop, POLL_MS);
+      }
+    }
+
+    loop();
+  </script>
 </body>
 </html>
