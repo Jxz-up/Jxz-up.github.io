@@ -68,33 +68,12 @@
       </div>
     </header>
 
-    <section id="resumen" class="mb-6">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="glass rounded-xl p-4">
-          <div class="small-muted">Voltaje Fase A</div>
-          <div class="card-value" id="res-Va">-- V</div>
-          <div class="small-muted">Estado: <span id="res-status-volt" class="status-pill">--</span></div>
-        </div>
-        <div class="glass rounded-xl p-4">
-          <div class="small-muted">Corriente Fase A</div>
-          <div class="card-value" id="res-Ia">-- A</div>
-          <div class="small-muted">Estado: <span id="res-status-Ia" class="status-pill">--</span></div>
-        </div>
-        <div class="glass rounded-xl p-4">
-          <div class="small-muted">Potencia Total (P_Total)</div>
-          <div class="card-value" id="res-Pt">-- W</div>
-          <div class="small-muted">FP: <span id="res-FP">--</span></div>
-        </div>
-      </div>
-    </section>
-
     <section id="historico" class="mb-6 glass rounded-xl p-4">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-lg font-bold">Histórico por rango</h2>
           <p class="small-muted">Selecciona Desde/Hasta y carga los datos para graficar el intervalo.</p>
         </div>
-        <div class="small-muted">Recomendado: 10–60 minutos</div>
       </div>
 
       <div class="mt-4 grid grid-cols-1 lg:grid-cols-4 gap-3">
@@ -119,9 +98,6 @@
 
     <!-- VOLTAJES -->
     <section id="voltajes" class="mb-8">
-      <div class="flex items-center justify-between mb-3">
-        <div><h2 class="text-lg font-bold">Voltajes (V_A, V_B, V_C)</h2><p class="small-muted">Línea uniforme</p></div>
-      </div>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <div class="glass rounded-xl p-4">
           <div class="small-muted">Valores actuales</div>
@@ -142,9 +118,6 @@
 
     <!-- CORRIENTES -->
     <section id="corrientes" class="mb-8">
-      <div class="flex items-center justify-between mb-3">
-        <div><h2 class="text-lg font-bold">Corrientes (I_A,I_B,I_C)</h2><p class="small-muted">Tendencia</p></div>
-      </div>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <div class="glass rounded-xl p-4">
           <div class="small-muted">Valores actuales</div>
@@ -162,9 +135,6 @@
 
     <!-- POTENCIAS ACTIVAS -->
     <section id="potencias" class="mb-8">
-      <div class="flex items-center justify-between mb-3">
-        <div><h2 class="text-lg font-bold">Potencias Activas (P_Act_A,P_Act_B,P_Act_C)</h2></div>
-      </div>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <div class="glass rounded-xl p-4">
           <div class="small-muted">Valores actuales</div>
@@ -183,9 +153,6 @@
 
     <!-- REACTIVAS -->
     <section id="reactivas" class="mb-8">
-      <div class="flex items-center justify-between mb-3">
-        <div><h2 class="text-lg font-bold">Potencias Reactivas</h2></div>
-      </div>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <div class="glass rounded-xl p-4">
           <div class="small-muted">Valores actuales</div>
@@ -204,9 +171,6 @@
 
     <!-- APARENTE -->
     <section id="aparente" class="mb-8">
-      <div class="flex items-center justify-between mb-3">
-        <div><h2 class="text-lg font-bold">Potencia Aparente</h2></div>
-      </div>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <div class="glass rounded-xl p-4">
           <div class="small-muted">Valores actuales</div>
@@ -225,9 +189,6 @@
 
     <!-- FP -->
     <section id="fp" class="mb-8">
-      <div class="flex items-center justify-between mb-3">
-        <div><h2 class="text-lg font-bold">Factor de Potencia</h2></div>
-      </div>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <div class="glass rounded-xl p-4">
           <div class="small-muted">Valores actuales</div>
@@ -246,9 +207,6 @@
 
     <!-- ENERGÍAS -->
     <section id="energias" class="mb-12">
-      <div class="flex items-center justify-between mb-3">
-        <div><h2 class="text-lg font-bold">Energías</h2></div>
-      </div>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <div class="glass rounded-xl p-4">
           <div class="small-muted">Valores actuales</div>
@@ -268,9 +226,7 @@
 </div>
 
 <script>
-/* =======================
-   CONFIG
-======================= */
+/* ===================== CONFIG ===================== */
 const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz-jPO_x4ET5kNeDTrQVnLBAYpiMMux7I5TGPCnEYHd-8stih6ci2OC4iESWrA_Uk5q/exec";
 
 const COLUMNS = [
@@ -316,22 +272,20 @@ const num = v => (v === null || v === undefined || v === "" ? 0 : Number(v));
 const fmt = v => (v === null || v === undefined || v === "" ? "--" : (isNaN(Number(v)) ? v : Number(v).toFixed(2)));
 
 let charts = {};
-let labels = [];
+let labels = [];                 // ✅ NO se reasigna en histórico (solo se vacía y rellena)
 const maxPointsRT = 30;
 let currentMode = "realtime";
 let rtTimer = null;
 let isFetching = false;
 
-/* =======================
-   CHART CREATION HELPERS
-======================= */
+/* ===================== HELPERS ===================== */
 function destroyChartIfExists(key){
   if (charts[key]) { charts[key].destroy(); charts[key] = null; }
 }
 function setMode(text){ document.getElementById('mode-pill').textContent = text; }
 
+/* ===================== CHARTS REALTIME ===================== */
 function setupChartsRealtime(){
-  // Volt line, Curr line, FP line, (bars/pie)
   destroyChartIfExists("volt");
   destroyChartIfExists("curr");
   destroyChartIfExists("pact");
@@ -395,6 +349,7 @@ function setupChartsRealtime(){
   });
 }
 
+/* ===================== CHARTS HISTORY ===================== */
 function setupChartsHistory(){
   destroyChartIfExists("volt");
   destroyChartIfExists("curr");
@@ -481,20 +436,7 @@ function setupChartsHistory(){
   });
 }
 
-function resetSeries(){
-  labels.length = 0;
-  // vaciar datasets (no depende de buffers)
-  Object.values(charts).forEach(ch => {
-    if (!ch) return;
-    ch.data.labels = [];
-    ch.data.datasets.forEach(ds => ds.data = []);
-    ch.update();
-  });
-}
-
-/* =======================
-   TIEMPO REAL
-======================= */
+/* ===================== TIEMPO REAL ===================== */
 async function fetchAndUpdate(){
   if (isFetching) return;
   isFetching = true;
@@ -509,7 +451,7 @@ async function fetchAndUpdate(){
     const label = d._ts ? new Date(d._ts).toLocaleTimeString() : new Date().toLocaleTimeString();
     document.getElementById('last-update').textContent = label;
 
-    // UI
+    // UI (básico)
     document.getElementById('Va').textContent = fmt(d.Va);
     document.getElementById('Vb').textContent = fmt(d.Vb);
     document.getElementById('Vc').textContent = fmt(d.Vc);
@@ -545,50 +487,35 @@ async function fetchAndUpdate(){
     document.getElementById('E_Qt').textContent = fmt(d.E_Qt);
     document.getElementById('E_St').textContent = fmt(d.E_St);
 
-    document.getElementById('res-Va').textContent = d.Va ? fmt(d.Va) + ' V' : '--';
-    document.getElementById('res-Ia').textContent = d.Ia ? fmt(d.Ia) + ' A' : '--';
-    document.getElementById('res-Pt').textContent = d.Pt ? fmt(d.Pt) + ' W' : '--';
-    document.getElementById('res-FP').textContent = d.FPt ? fmt(d.FPt) : '--';
-
-    document.getElementById('server-status').textContent = 'Conectado';
-    document.getElementById('server-status').classList.remove('text-red-400');
-    document.getElementById('server-status').classList.add('text-green-400');
-
-    // Actualizar charts RT (máx 30 puntos) solo para lineales
+    // Serie RT (solo para lineales)
     labels.push(label);
     if (labels.length > maxPointsRT) labels.shift();
 
-    // Volt
+    // volt
     charts.volt.data.labels = labels;
     charts.volt.data.datasets[0].data.push(num(d.Va));
     charts.volt.data.datasets[1].data.push(num(d.Vb));
     charts.volt.data.datasets[2].data.push(num(d.Vc));
-    if (charts.volt.data.datasets[0].data.length > maxPointsRT) {
-      charts.volt.data.datasets.forEach(ds => ds.data.shift());
-    }
+    if (charts.volt.data.datasets[0].data.length > maxPointsRT) charts.volt.data.datasets.forEach(ds => ds.data.shift());
     charts.volt.update();
 
-    // Curr
+    // curr
     charts.curr.data.labels = labels;
     charts.curr.data.datasets[0].data.push(num(d.Ia));
     charts.curr.data.datasets[1].data.push(num(d.Ib));
     charts.curr.data.datasets[2].data.push(num(d.Ic));
-    if (charts.curr.data.datasets[0].data.length > maxPointsRT) {
-      charts.curr.data.datasets.forEach(ds => ds.data.shift());
-    }
+    if (charts.curr.data.datasets[0].data.length > maxPointsRT) charts.curr.data.datasets.forEach(ds => ds.data.shift());
     charts.curr.update();
 
-    // FP
+    // fp
     charts.fp.data.labels = labels;
     charts.fp.data.datasets[0].data.push(num(d.FPa));
     charts.fp.data.datasets[1].data.push(num(d.FPb));
     charts.fp.data.datasets[2].data.push(num(d.FPc));
-    if (charts.fp.data.datasets[0].data.length > maxPointsRT) {
-      charts.fp.data.datasets.forEach(ds => ds.data.shift());
-    }
+    if (charts.fp.data.datasets[0].data.length > maxPointsRT) charts.fp.data.datasets.forEach(ds => ds.data.shift());
     charts.fp.update();
 
-    // Bars + pie
+    // bars/pie
     charts.pact.data.datasets[0].data = [ num(d.Pa), num(d.Pb), num(d.Pc) ];
     charts.pact.update();
 
@@ -601,53 +528,49 @@ async function fetchAndUpdate(){
     charts.energ.data.datasets[0].data = [ num(d.E_Pt), num(d.E_Qt), num(d.E_St) ];
     charts.energ.update();
 
+    document.getElementById('server-status').textContent = 'Conectado';
+
   } catch (err) {
     console.error(err);
     document.getElementById('server-status').textContent = 'Error';
-    document.getElementById('server-status').classList.remove('text-green-400');
-    document.getElementById('server-status').classList.add('text-red-400');
   } finally {
     isFetching = false;
   }
 }
 
-/* =======================
-   HISTÓRICO (series)
-======================= */
+/* ===================== HISTÓRICO (ARREGLADO) ===================== */
 async function fetchHistory(){
   const from = document.getElementById("fromDT").value;
   const to = document.getElementById("toDT").value;
   const maxPoints = document.getElementById("maxPoints").value || 300;
-
   if (!from || !to) { alert("Selecciona Desde y Hasta"); return; }
 
   const cols = COLUMNS.join(',');
   const url = `${GAS_WEB_APP_URL}?mode=history&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&maxPoints=${encodeURIComponent(maxPoints)}&colsToQuery=${encodeURIComponent(cols)}`;
 
   document.getElementById('server-status').textContent = 'Cargando histórico...';
-  document.getElementById('server-status').classList.remove('text-red-400');
-  document.getElementById('server-status').classList.add('text-green-400');
 
   const res = await fetch(url, { cache:'no-store' });
   const json = await res.json();
 
   if (json.status !== "success") {
+    console.error("Respuesta histórico:", json);
     alert("Error histórico (backend): " + (json.error || "desconocido"));
-    throw new Error(json.error || "Error histórico");
-  }
-  if (!json.count) {
-    alert("No hay datos en ese rango.");
     return;
   }
+  if (!json.count) { alert("No hay datos en ese rango."); return; }
 
-  // labels reales del backend
-  labels = json.labels.map(ts => new Date(ts).toLocaleTimeString());
+  // ✅ CLAVE: NO reasignar labels, solo vaciar y rellenar (mantener referencia)
+  labels.length = 0;
+  json.labels.forEach(ts => labels.push(new Date(ts).toLocaleTimeString()));
 
-  const s = json.series || {};
-  const arr = (k) => (s[k] || []).map(v => Number(v) || 0);
-  const last = (k) => (s[k] && s[k].length ? s[k][s[k].length-1] : null);
+  const toNumArray = (k) => (json.series?.[k] || []).map(v => Number(v) || 0);
+  const last = (k) => {
+    const a = json.series?.[k];
+    return (a && a.length) ? a[a.length - 1] : null;
+  };
 
-  // Panel de valores (último punto del rango)
+  // Panel (último valor del rango)
   document.getElementById('Va').textContent = fmt(last("Va"));
   document.getElementById('Vb').textContent = fmt(last("Vb"));
   document.getElementById('Vc').textContent = fmt(last("Vc"));
@@ -683,65 +606,60 @@ async function fetchHistory(){
   document.getElementById('E_Qt').textContent = fmt(last("E_Qt"));
   document.getElementById('E_St').textContent = fmt(last("E_St"));
 
-  document.getElementById('res-Va').textContent = fmt(last("Va")) + ' V';
-  document.getElementById('res-Ia').textContent = fmt(last("Ia")) + ' A';
-  document.getElementById('res-Pt').textContent = fmt(last("Pt")) + ' W';
-  document.getElementById('res-FP').textContent = fmt(last("FPt"));
-
-  // ✅ Cargar series en charts (todas)
+  // ✅ Actualiza TODAS las gráficas históricas
   charts.volt.data.labels = labels;
-  charts.volt.data.datasets[0].data = arr("Va");
-  charts.volt.data.datasets[1].data = arr("Vb");
-  charts.volt.data.datasets[2].data = arr("Vc");
+  charts.volt.data.datasets[0].data = toNumArray("Va");
+  charts.volt.data.datasets[1].data = toNumArray("Vb");
+  charts.volt.data.datasets[2].data = toNumArray("Vc");
   charts.volt.update();
 
   charts.curr.data.labels = labels;
-  charts.curr.data.datasets[0].data = arr("Ia");
-  charts.curr.data.datasets[1].data = arr("Ib");
-  charts.curr.data.datasets[2].data = arr("Ic");
+  charts.curr.data.datasets[0].data = toNumArray("Ia");
+  charts.curr.data.datasets[1].data = toNumArray("Ib");
+  charts.curr.data.datasets[2].data = toNumArray("Ic");
   charts.curr.update();
 
   charts.pact.data.labels = labels;
-  charts.pact.data.datasets[0].data = arr("Pa");
-  charts.pact.data.datasets[1].data = arr("Pb");
-  charts.pact.data.datasets[2].data = arr("Pc");
-  charts.pact.data.datasets[3].data = arr("Pt");
+  charts.pact.data.datasets[0].data = toNumArray("Pa");
+  charts.pact.data.datasets[1].data = toNumArray("Pb");
+  charts.pact.data.datasets[2].data = toNumArray("Pc");
+  charts.pact.data.datasets[3].data = toNumArray("Pt");
   charts.pact.update();
 
   charts.q.data.labels = labels;
-  charts.q.data.datasets[0].data = arr("Qa");
-  charts.q.data.datasets[1].data = arr("Qb");
-  charts.q.data.datasets[2].data = arr("Qc");
-  charts.q.data.datasets[3].data = arr("Qt");
+  charts.q.data.datasets[0].data = toNumArray("Qa");
+  charts.q.data.datasets[1].data = toNumArray("Qb");
+  charts.q.data.datasets[2].data = toNumArray("Qc");
+  charts.q.data.datasets[3].data = toNumArray("Qt");
   charts.q.update();
 
   charts.s.data.labels = labels;
-  charts.s.data.datasets[0].data = arr("Sa");
-  charts.s.data.datasets[1].data = arr("Sb");
-  charts.s.data.datasets[2].data = arr("Sc");
-  charts.s.data.datasets[3].data = arr("St");
+  charts.s.data.datasets[0].data = toNumArray("Sa");
+  charts.s.data.datasets[1].data = toNumArray("Sb");
+  charts.s.data.datasets[2].data = toNumArray("Sc");
+  charts.s.data.datasets[3].data = toNumArray("St");
   charts.s.update();
 
   charts.fp.data.labels = labels;
-  charts.fp.data.datasets[0].data = arr("FPa");
-  charts.fp.data.datasets[1].data = arr("FPb");
-  charts.fp.data.datasets[2].data = arr("FPc");
-  charts.fp.data.datasets[3].data = arr("FPt");
+  charts.fp.data.datasets[0].data = toNumArray("FPa");
+  charts.fp.data.datasets[1].data = toNumArray("FPb");
+  charts.fp.data.datasets[2].data = toNumArray("FPc");
+  charts.fp.data.datasets[3].data = toNumArray("FPt");
   charts.fp.update();
 
   charts.energ.data.labels = labels;
-  charts.energ.data.datasets[0].data = arr("E_Pt");
-  charts.energ.data.datasets[1].data = arr("E_Qt");
-  charts.energ.data.datasets[2].data = arr("E_St");
+  charts.energ.data.datasets[0].data = toNumArray("E_Pt");
+  charts.energ.data.datasets[1].data = toNumArray("E_Qt");
+  charts.energ.data.datasets[2].data = toNumArray("E_St");
   charts.energ.update();
 
   document.getElementById('server-status').textContent = `Histórico (${json.count} pts)`;
   document.getElementById('last-update').textContent = labels[labels.length - 1] || '--:--:--';
+
+  console.log("Histórico puntos:", labels.length, charts.volt.data.datasets[0].data.length);
 }
 
-/* =======================
-   INIT
-======================= */
+/* ===================== INIT ===================== */
 document.addEventListener('DOMContentLoaded', () => {
   setupChartsRealtime();
   setMode("Tiempo real");
@@ -768,7 +686,6 @@ document.addEventListener('DOMContentLoaded', () => {
     rtTimer = setInterval(fetchAndUpdate, 3000);
   });
 
-  // Arranque
   fetchAndUpdate();
   rtTimer = setInterval(fetchAndUpdate, 3000);
 });
