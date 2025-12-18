@@ -97,11 +97,15 @@
 
   <script>
     // ===============================
-    // SCADA Frontend (1 archivo)
+    // SCADA (1 archivo) - Versión corregida
     // ===============================
 
-    // ✅ CAMBIA ESTO por tu URL de Apps Script desplegado (termina en /exec)
-    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzOdJf7FC5hVtlSzsboCthMf5NGqv8--XWhf1MVPL-rddqCE9sIyrFX6sPcSzflGpPC/exec";
+    // ✅ PEGA AQUÍ tu URL REAL (la que te devuelve JSON en el navegador)
+    // Puede ser:
+    // - https://script.google.com/macros/s/XXXX/exec
+    // o (si te funciona):
+    // - https://script.googleusercontent.com/macros/echo?... (como en tu prueba)
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwWUNK_PpeptCsFy9Zy16MRQM-6WKawP3LR3lPW4NIx6jPqJtc1OoVZ2NrMUAFpPnnt/exec";
 
     const POLL_MS = 2000;
 
@@ -115,14 +119,18 @@
       document.getElementById("connLamp").style.background = ok ? "rgba(46,229,157,.95)" : "#666";
     }
 
-    // JSONP para evitar problemas CORS en GitHub Pages
+    // JSONP (evita CORS). Agrega callback automáticamente.
     function jsonp(url) {
       return new Promise((resolve, reject) => {
         const cbName = "cb_" + Math.random().toString(36).slice(2);
         window[cbName] = (data) => { resolve(data); cleanup(); };
 
         const s = document.createElement("script");
-        s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cbName + "&_=" + Date.now();
+
+        // IMPORTANTE: si ya tiene ?, usamos &, si no, usamos ?
+        const sep = url.includes("?") ? "&" : "?";
+        s.src = url + sep + "callback=" + cbName + "&_=" + Date.now();
+
         s.onerror = () => { reject(new Error("No se pudo conectar")); cleanup(); };
         document.body.appendChild(s);
 
@@ -160,9 +168,14 @@
 
     async function loop() {
       try {
-        const url = WEBAPP_URL + (WEBAPP_URL.includes("?") ? "&" : "?") + "action=latest";
-        const payload = await jsonp(url);
+        // ✅ Evita duplicar action=latest
+        const base = WEBAPP_URL.includes("action=latest")
+          ? WEBAPP_URL
+          : WEBAPP_URL + (WEBAPP_URL.includes("?") ? "&" : "?") + "action=latest";
+
+        const payload = await jsonp(base);
         render(payload);
+
       } catch (e) {
         setConn(false);
         setStatus("Desconectado • " + e.message);
@@ -171,6 +184,7 @@
       }
     }
 
+    // Arranca
     loop();
   </script>
 </body>
