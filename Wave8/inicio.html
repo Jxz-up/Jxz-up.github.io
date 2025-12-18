@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SCADA - Tiempo real</title>
+  <title>SCADA - Fases + Gráfica</title>
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -49,12 +49,6 @@
       outline:none;
     }
     input{width:90px}
-    .pill{
-      padding:6px 10px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.06);
-      font-size:12px;color:var(--muted)
-    }
   </style>
 </head>
 
@@ -104,22 +98,20 @@
       </div>
     </div>
 
+    <!-- GRÁFICA -->
     <div class="card" style="grid-column:1/-1">
       <div class="row">
         <div>
-          <div class="label">Gráfica en tiempo real</div>
+          <div class="label">Gráfica (datos de tu Excel/Sheet)</div>
           <div class="meta">Últimos <span id="nLabel">60</span> puntos</div>
         </div>
         <div class="row" style="gap:8px">
-          <span class="pill">Señal</span>
           <select id="series">
             <option value="fa">FA</option>
             <option value="fb">FB</option>
             <option value="fc">FC</option>
             <option value="fd">FD</option>
           </select>
-
-          <span class="pill">Puntos</span>
           <input id="nPoints" type="number" min="10" max="300" value="60" />
         </div>
       </div>
@@ -129,21 +121,19 @@
       </div>
 
       <div class="meta" style="margin-top:10px">Debug</div>
-      <pre class="meta" id="raw" style="white-space:pre-wrap;overflow:auto;max-height:220px;background:rgba(255,255,255,.04);padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.08)">--</pre>
+      <pre class="meta" id="raw" style="white-space:pre-wrap;max-height:220px;overflow:auto;background:rgba(255,255,255,.04);padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.08)">--</pre>
     </div>
   </section>
 </main>
 
 <script>
-  // ====== CONFIG ======
-  const WEBAPP_EXEC = 
-    "https://script.google.com/macros/s/AKfycbwWUNK_PpeptCsFy9Zy16MRQM-6WKawP3LR3lPW4NIx6jPqJtc1OoVZ2NrMUAFpPnnt/exec";
-
+  // ===== CONFIG =====
+  const WEBAPP_EXEC =
+    "https://script.google.com/macros/s/AKfycbw5nGXrtEBMO5S-L994sKAr_id20Qtg14oJuhhBndFpNSx362kgBya_Ny6vFYZMWp6nsA/exec";
   const POLL_MS = 2000;
 
-  // ====== UI ======
+  // ===== UI =====
   function setText(id, v){ document.getElementById(id).textContent = v; }
-
   function setConn(ok, msg){
     setText("connTxt", ok ? "CONECTADO" : "DESCONECTADO");
     document.getElementById("connLamp").style.background = ok ? "rgba(46,229,157,.95)" : "#666";
@@ -152,7 +142,7 @@
     setText("clock", new Date().toLocaleString());
   }
 
-  // ====== JSONP ======
+  // ===== JSONP =====
   function jsonp(url){
     return new Promise((resolve,reject)=>{
       const cbName = "cb_" + Math.random().toString(36).slice(2);
@@ -161,7 +151,6 @@
       const s = document.createElement("script");
       const sep = url.includes("?") ? "&" : "?";
       s.src = url + sep + "callback=" + cbName + "&_=" + Date.now();
-
       s.onerror = ()=>{ reject(new Error("No se pudo conectar (JSONP)")); cleanup(); };
       document.body.appendChild(s);
 
@@ -169,7 +158,7 @@
     });
   }
 
-  // ====== CHART ======
+  // ===== CHART =====
   const chart = new Chart(document.getElementById("chart"), {
     type: "line",
     data: {
@@ -194,11 +183,7 @@
   });
 
   function updateChart(rows, key){
-    const labels = rows.map(r => {
-      const d = new Date(r.fecha);
-      return d.toLocaleTimeString();
-    });
-
+    const labels = rows.map(r => new Date(r.fecha).toLocaleTimeString());
     const data = rows.map(r => Number(r[key] ?? 0));
 
     chart.data.labels = labels;
@@ -209,7 +194,7 @@
 
   async function tick(){
     try{
-      // 1) latest para KPIs
+      // 1) KPIs
       const latestPack = await jsonp(WEBAPP_EXEC + "?action=latest");
       if (!latestPack || latestPack.ok === false) throw new Error(latestPack?.error || "Respuesta inválida");
 
@@ -220,8 +205,8 @@
         setText("fd", latestPack.latest.fd ?? "--");
       }
 
-      // 2) last N para gráfica
-      const key = document.getElementById("series").value; // fa/fb/fc/fd
+      // 2) Gráfica (last n)
+      const key = document.getElementById("series").value;
       const n = Math.max(10, Math.min(300, parseInt(document.getElementById("nPoints").value || "60", 10)));
       setText("nLabel", n);
 
