@@ -37,17 +37,17 @@
       background:#666;border:1px solid rgba(255,255,255,.12);
       box-shadow: inset 0 0 0 2px rgba(0,0,0,.2);
     }
-    .chartWrap{height:320px;margin-top:10px}
+    .chartWrap{height:340px;margin-top:10px}
     canvas{width:100% !important;height:100% !important;}
-    select,input{
+    input{
       background:rgba(255,255,255,.06);
       border:1px solid rgba(255,255,255,.12);
       color:var(--text);
       border-radius:10px;
       padding:8px 10px;
       outline:none;
+      width:90px
     }
-    input{width:90px}
     pre{
       white-space:pre-wrap;
       max-height:220px;
@@ -109,17 +109,10 @@
     <div class="card" style="grid-column:1/-1">
       <div class="row">
         <div>
-          <div class="label">Gráfica en tiempo real</div>
+          <div class="label">Gráfica en tiempo real (FA, FB, FC, FD)</div>
           <div class="meta">Últimos <span id="nLabel">60</span> puntos</div>
         </div>
         <div class="row" style="gap:8px">
-          <span class="meta">Señal</span>
-          <select id="series">
-            <option value="fa">FA</option>
-            <option value="fb">FB</option>
-            <option value="fc">FC</option>
-            <option value="fd">FD</option>
-          </select>
           <span class="meta">Puntos</span>
           <input id="nPoints" type="number" min="10" max="300" value="60" />
         </div>
@@ -136,8 +129,8 @@
 </main>
 
 <script>
-  // ✅ TU URL NUEVA
-  const EXEC = "https://script.google.com/macros/s/AKfycbx3k1r_PnEQGYr4ovEt_COTVxEoSlMEyjH6VkOwu3x56a77geBGkFflqq6xlTDnmNNzMA/exec";
+  // ✅ URL CORRECTA (LA TUYA)
+  const EXEC = "https://script.google.com/macros/s/AKfycbzhWjgCYRvoCHQXIiFkuSISYqlvMC2KQ6bTPMtxBVq19WGLFj398yYH40QYm4O0_V6E2A/exec";
   const POLL_MS = 2000;
 
   function setText(id, v){ document.getElementById(id).textContent = v; }
@@ -167,23 +160,37 @@
     });
   }
 
-  // Chart.js
+  // Chart.js (4 líneas)
   const chart = new Chart(document.getElementById("chart"), {
     type: "line",
-    data: { labels: [], datasets: [{ label: "FA", data: [], tension: 0.25, pointRadius: 0 }] },
-    options: { responsive: true, maintainAspectRatio: false, animation: false }
+    data: {
+      labels: [],
+      datasets: [
+        { label: "FA", data: [], tension: 0.25, pointRadius: 0 },
+        { label: "FB", data: [], tension: 0.25, pointRadius: 0 },
+        { label: "FC", data: [], tension: 0.25, pointRadius: 0 },
+        { label: "FD", data: [], tension: 0.25, pointRadius: 0 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false
+    }
   });
 
-  function updateChart(rows, key){
+  function updateChart(rows){
     chart.data.labels = rows.map(r => new Date(r.fecha).toLocaleTimeString());
-    chart.data.datasets[0].label = key.toUpperCase();
-    chart.data.datasets[0].data = rows.map(r => Number(r[key] ?? 0));
+    chart.data.datasets[0].data = rows.map(r => Number(r.fa ?? 0));
+    chart.data.datasets[1].data = rows.map(r => Number(r.fb ?? 0));
+    chart.data.datasets[2].data = rows.map(r => Number(r.fc ?? 0));
+    chart.data.datasets[3].data = rows.map(r => Number(r.fd ?? 0));
     chart.update();
   }
 
   async function loop(){
     try{
-      // 1) KPIs
+      // KPIs
       const latest = await jsonp(EXEC + "?action=latest");
       if (!latest || latest.ok === false) throw new Error(latest?.error || "Respuesta inválida");
 
@@ -192,15 +199,14 @@
       setText("fc", latest.latest?.fc ?? "--");
       setText("fd", latest.latest?.fd ?? "--");
 
-      // 2) Gráfica
-      const key = document.getElementById("series").value;
+      // Históricos
       const n = Math.max(10, Math.min(300, parseInt(document.getElementById("nPoints").value || "60", 10)));
       setText("nLabel", n);
 
       const hist = await jsonp(EXEC + "?action=last&n=" + n);
       if (!hist || hist.ok === false) throw new Error(hist?.error || "Error leyendo históricos");
 
-      updateChart(hist.rows || [], key);
+      updateChart(hist.rows || []);
 
       setText("raw", JSON.stringify({ latest, hist }, null, 2));
       setConn(true, "OK • " + new Date(latest.ts).toLocaleTimeString());
