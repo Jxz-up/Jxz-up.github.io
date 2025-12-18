@@ -9,11 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-  :root{
-    --bg:#0b1221; --panel:#0f1724; --muted:#94a3b8;
-    --accent:#3b82f6; --accent-2:#7c3aed; --accent-3:#f472b6; --accent-4:#f59e0b;
-    --ok:#10b981; --danger:#ef4444;
-  }
+  :root{--bg:#0b1221;--muted:#94a3b8;}
   html,body{height:100%;background:radial-gradient(1200px 600px at 10% 10%, rgba(59,130,246,0.05), transparent), var(--bg); color:#e6eef8; margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto;}
   .glass{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.04); backdrop-filter: blur(6px); }
   .neon{ box-shadow: 0 6px 18px rgba(59,130,246,0.06); }
@@ -72,7 +68,6 @@
       </div>
     </header>
 
-    <!-- RESUMEN -->
     <section id="resumen" class="mb-6">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div class="glass rounded-xl p-4">
@@ -93,7 +88,6 @@
       </div>
     </section>
 
-    <!-- HISTÓRICO -->
     <section id="historico" class="mb-6 glass rounded-xl p-4">
       <div class="flex items-center justify-between">
         <div>
@@ -127,9 +121,7 @@
     <section id="voltajes" class="mb-8">
       <div class="flex items-center justify-between mb-3">
         <div><h2 class="text-lg font-bold">Voltajes (V_A, V_B, V_C)</h2><p class="small-muted">Línea uniforme</p></div>
-        <div class="small-muted">Últimos puntos</div>
       </div>
-
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <div class="glass rounded-xl p-4">
           <div class="small-muted">Valores actuales</div>
@@ -142,7 +134,6 @@
             <div class="data-row"><div class="key">Vca (calc)</div><div class="val" id="Vca">--</div></div>
           </div>
         </div>
-
         <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
           <canvas id="chartVoltajes" height="220"></canvas>
         </div>
@@ -154,7 +145,6 @@
       <div class="flex items-center justify-between mb-3">
         <div><h2 class="text-lg font-bold">Corrientes (I_A,I_B,I_C)</h2><p class="small-muted">Tendencia</p></div>
       </div>
-
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <div class="glass rounded-xl p-4">
           <div class="small-muted">Valores actuales</div>
@@ -173,9 +163,8 @@
     <!-- POTENCIAS ACTIVAS -->
     <section id="potencias" class="mb-8">
       <div class="flex items-center justify-between mb-3">
-        <div><h2 class="text-lg font-bold">Potencias Activas (P_Act_A,P_Act_B,P_Act_C)</h2><p class="small-muted">Barras</p></div>
+        <div><h2 class="text-lg font-bold">Potencias Activas (P_Act_A,P_Act_B,P_Act_C)</h2></div>
       </div>
-
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <div class="glass rounded-xl p-4">
           <div class="small-muted">Valores actuales</div>
@@ -195,15 +184,15 @@
     <!-- REACTIVAS -->
     <section id="reactivas" class="mb-8">
       <div class="flex items-center justify-between mb-3">
-        <div><h2 class="text-lg font-bold">Potencias Reactivas (P_Rea_A,P_Rea_B,P_Rea_C)</h2></div>
+        <div><h2 class="text-lg font-bold">Potencias Reactivas</h2></div>
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <div class="glass rounded-xl p-4">
           <div class="small-muted">Valores actuales</div>
           <div class="mt-2">
-            <div class="data-row"><div class="key">P_Rea_A</div><div class="val" id="Qa">--</div></div>
-            <div class="data-row"><div class="key">P_Rea_B</div><div class="val" id="Qb">--</div></div>
-            <div class="data-row"><div class="key">P_Rea_C</div><div class="val" id="Qc">--</div></div>
+            <div class="data-row"><div class="key">Q_A</div><div class="val" id="Qa">--</div></div>
+            <div class="data-row"><div class="key">Q_B</div><div class="val" id="Qb">--</div></div>
+            <div class="data-row"><div class="key">Q_C</div><div class="val" id="Qc">--</div></div>
             <div class="data-row"><div class="key">Q_Total</div><div class="val" id="Q_Total">--</div></div>
           </div>
         </div>
@@ -216,15 +205,15 @@
     <!-- APARENTE -->
     <section id="aparente" class="mb-8">
       <div class="flex items-center justify-between mb-3">
-        <div><h2 class="text-lg font-bold">Potencia Aparente (P_App_A,P_App_B,P_App_C)</h2></div>
+        <div><h2 class="text-lg font-bold">Potencia Aparente</h2></div>
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <div class="glass rounded-xl p-4">
           <div class="small-muted">Valores actuales</div>
           <div class="mt-2">
-            <div class="data-row"><div class="key">P_App_A</div><div class="val" id="Sa">--</div></div>
-            <div class="data-row"><div class="key">P_App_B</div><div class="val" id="Sb">--</div></div>
-            <div class="data-row"><div class="key">P_App_C</div><div class="val" id="Sc">--</div></div>
+            <div class="data-row"><div class="key">S_A</div><div class="val" id="Sa">--</div></div>
+            <div class="data-row"><div class="key">S_B</div><div class="val" id="Sb">--</div></div>
+            <div class="data-row"><div class="key">S_C</div><div class="val" id="Sc">--</div></div>
             <div class="data-row"><div class="key">S_Total</div><div class="val" id="S_Total">--</div></div>
           </div>
         </div>
@@ -237,7 +226,7 @@
     <!-- FP -->
     <section id="fp" class="mb-8">
       <div class="flex items-center justify-between mb-3">
-        <div><h2 class="text-lg font-bold">Factor de Potencia (FP_A,FP_B,FP_C)</h2></div>
+        <div><h2 class="text-lg font-bold">Factor de Potencia</h2></div>
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <div class="glass rounded-xl p-4">
@@ -258,7 +247,7 @@
     <!-- ENERGÍAS -->
     <section id="energias" class="mb-12">
       <div class="flex items-center justify-between mb-3">
-        <div><h2 class="text-lg font-bold">Energías (E_Act_Total, E_Rea_Total, E_App_Total)</h2></div>
+        <div><h2 class="text-lg font-bold">Energías</h2></div>
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <div class="glass rounded-xl p-4">
@@ -274,14 +263,14 @@
         </div>
       </div>
     </section>
+
   </main>
 </div>
 
 <script>
 /* =======================
    CONFIG
-   ======================= */
-// ⚠️ PON AQUÍ TU URL REAL DEL WEB APP (termina en /exec)
+======================= */
 const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz-jPO_x4ET5kNeDTrQVnLBAYpiMMux7I5TGPCnEYHd-8stih6ci2OC4iESWrA_Uk5q/exec";
 
 const COLUMNS = [
@@ -296,14 +285,13 @@ const COLUMNS = [
   "E_Pt","E_Qt","E_St"
 ];
 
-/* Estética */
 const colors = {
-  Va: '#60a5fa', Vb: '#f472b6', Vc: '#f59e0b',
-  Ia: '#34d399', Ib: '#60a5fa', Ic: '#f472b6',
-  Pa: '#3b82f6', Pb: '#7c3aed', Pc: '#06b6d4',
-  Qa: '#f59e0b', Qb: '#fb923c', Qc: '#fb7185',
-  Sa: '#ef4444', Sb: '#f43f5e', Sc: '#fb7185',
-  FPa: '#60a5fa', FPb: '#7c3aed', FPc: '#06b6d4'
+  Va:'#60a5fa', Vb:'#f472b6', Vc:'#f59e0b',
+  Ia:'#34d399', Ib:'#60a5fa', Ic:'#f472b6',
+  Pa:'#3b82f6', Pb:'#7c3aed', Pc:'#06b6d4',
+  Qa:'#f59e0b', Qb:'#fb923c', Qc:'#fb7185',
+  Sa:'#ef4444', Sb:'#f43f5e', Sc:'#fb7185',
+  FPa:'#60a5fa', FPb:'#7c3aed', FPc:'#06b6d4'
 };
 
 const commonOptions = {
@@ -311,114 +299,209 @@ const commonOptions = {
   interaction: { mode: 'index', intersect: false },
   plugins: {
     legend: { labels: { color: '#cfe6ff', boxWidth: 12, boxHeight: 6 } },
-    tooltip: { backgroundColor: 'rgba(2,6,23,0.9)', titleColor: '#fff', bodyColor: '#fff' }
+    tooltip: { backgroundColor: 'rgba(2,6,23,0.9)', titleColor:'#fff', bodyColor:'#fff' }
   },
   scales: {
     x: { ticks: { color: '#9fb5ff', maxRotation: 45, minRotation: 20 }, grid: { color: 'rgba(255,255,255,0.02)' } },
     y: { ticks: { color: '#9fb5ff' }, grid: { color: 'rgba(255,255,255,0.03)' } }
   },
   elements: {
-    point: { radius: 4, hoverRadius: 6, borderWidth: 2, backgroundColor: '#0b1221' },
+    point: { radius: 3, hoverRadius:5, borderWidth:2, backgroundColor:'#0b1221' },
     line: { tension: 0.35, borderWidth: 2 }
   },
   maintainAspectRatio: false
 };
 
-/* Chart holders */
-let charts = {};
-let labels = [];
-const maxPointsRT = 30;
-
-/* Data buffers */
-const buf = {
-  Va:[], Vb:[], Vc:[],
-  Ia:[], Ib:[], Ic:[],
-  FPa:[], FPb:[], FPc:[]
-};
-
-/* Helpers */
 const num = v => (v === null || v === undefined || v === "" ? 0 : Number(v));
 const fmt = v => (v === null || v === undefined || v === "" ? "--" : (isNaN(Number(v)) ? v : Number(v).toFixed(2)));
 
-/* Setup charts */
-function setupCharts(){
+let charts = {};
+let labels = [];
+const maxPointsRT = 30;
+let currentMode = "realtime";
+let rtTimer = null;
+let isFetching = false;
+
+/* =======================
+   CHART CREATION HELPERS
+======================= */
+function destroyChartIfExists(key){
+  if (charts[key]) { charts[key].destroy(); charts[key] = null; }
+}
+function setMode(text){ document.getElementById('mode-pill').textContent = text; }
+
+function setupChartsRealtime(){
+  // Volt line, Curr line, FP line, (bars/pie)
+  destroyChartIfExists("volt");
+  destroyChartIfExists("curr");
+  destroyChartIfExists("pact");
+  destroyChartIfExists("q");
+  destroyChartIfExists("s");
+  destroyChartIfExists("fp");
+  destroyChartIfExists("energ");
+
   charts.volt = new Chart(document.getElementById('chartVoltajes').getContext('2d'), {
-    type: 'line',
-    data: { labels, datasets: [
-      { label: 'V_A', data: buf.Va, borderColor: colors.Va, pointBackgroundColor: colors.Va },
-      { label: 'V_B', data: buf.Vb, borderColor: colors.Vb, pointBackgroundColor: colors.Vb },
-      { label: 'V_C', data: buf.Vc, borderColor: colors.Vc, pointBackgroundColor: colors.Vc }
+    type:'line',
+    data:{ labels, datasets:[
+      { label:'V_A', data:[], borderColor:colors.Va, pointBackgroundColor:colors.Va },
+      { label:'V_B', data:[], borderColor:colors.Vb, pointBackgroundColor:colors.Vb },
+      { label:'V_C', data:[], borderColor:colors.Vc, pointBackgroundColor:colors.Vc }
     ]},
     options: commonOptions
   });
 
   charts.curr = new Chart(document.getElementById('chartCorrientes').getContext('2d'), {
-    type: 'line',
-    data: { labels, datasets: [
-      { label: 'I_A', data: buf.Ia, borderColor: colors.Ia, pointBackgroundColor: colors.Ia },
-      { label: 'I_B', data: buf.Ib, borderColor: colors.Ib, pointBackgroundColor: colors.Ib },
-      { label: 'I_C', data: buf.Ic, borderColor: colors.Ic, pointBackgroundColor: colors.Ic }
+    type:'line',
+    data:{ labels, datasets:[
+      { label:'I_A', data:[], borderColor:colors.Ia, pointBackgroundColor:colors.Ia },
+      { label:'I_B', data:[], borderColor:colors.Ib, pointBackgroundColor:colors.Ib },
+      { label:'I_C', data:[], borderColor:colors.Ic, pointBackgroundColor:colors.Ic }
     ]},
     options: commonOptions
   });
 
   charts.pact = new Chart(document.getElementById('chartPotActivas').getContext('2d'), {
-    type: 'bar',
-    data: { labels: ['P_Act_A','P_Act_B','P_Act_C'], datasets: [{ label: 'W', data: [0,0,0], backgroundColor: [colors.Pa, colors.Pb, colors.Pc] }]},
+    type:'bar',
+    data:{ labels:['P_Act_A','P_Act_B','P_Act_C'], datasets:[{ label:'W', data:[0,0,0], backgroundColor:[colors.Pa, colors.Pb, colors.Pc] }]},
     options: Object.assign({}, commonOptions, { elements: { bar: { borderRadius: 6 } } })
   });
 
   charts.q = new Chart(document.getElementById('chartPotReactivas').getContext('2d'), {
-    type: 'bar',
-    data: { labels: ['P_Rea_A','P_Rea_B','P_Rea_C'], datasets: [{ label: 'VAR', data: [0,0,0], backgroundColor: [colors.Qa, colors.Qb, colors.Qc] }]},
+    type:'bar',
+    data:{ labels:['Q_A','Q_B','Q_C'], datasets:[{ label:'VAR', data:[0,0,0], backgroundColor:[colors.Qa, colors.Qb, colors.Qc] }]},
     options: Object.assign({}, commonOptions, { elements: { bar: { borderRadius: 6 } } })
   });
 
   charts.s = new Chart(document.getElementById('chartAparente').getContext('2d'), {
-    type: 'bar',
-    data: { labels: ['P_App_A','P_App_B','P_App_C'], datasets: [{ label: 'VA', data: [0,0,0], backgroundColor: [colors.Sa, colors.Sb, colors.Sc] }]},
+    type:'bar',
+    data:{ labels:['S_A','S_B','S_C'], datasets:[{ label:'VA', data:[0,0,0], backgroundColor:[colors.Sa, colors.Sb, colors.Sc] }]},
     options: Object.assign({}, commonOptions, { elements: { bar: { borderRadius: 6 } } })
   });
 
   charts.fp = new Chart(document.getElementById('chartFP').getContext('2d'), {
-    type: 'line',
-    data: { labels, datasets: [
-      { label:'FP_A', data: buf.FPa, borderColor: colors.FPa, pointBackgroundColor: colors.FPa },
-      { label:'FP_B', data: buf.FPb, borderColor: colors.FPb, pointBackgroundColor: colors.FPb },
-      { label:'FP_C', data: buf.FPc, borderColor: colors.FPc, pointBackgroundColor: colors.FPc }
+    type:'line',
+    data:{ labels, datasets:[
+      { label:'FP_A', data:[], borderColor:colors.FPa, pointBackgroundColor:colors.FPa },
+      { label:'FP_B', data:[], borderColor:colors.FPb, pointBackgroundColor:colors.FPb },
+      { label:'FP_C', data:[], borderColor:colors.FPc, pointBackgroundColor:colors.FPc }
     ]},
     options: commonOptions
   });
 
   charts.energ = new Chart(document.getElementById('chartEnergias').getContext('2d'), {
-    type: 'pie',
-    data: { labels: ['E_Act_Total','E_Rea_Total','E_App_Total'], datasets: [{ data: [0,0,0], backgroundColor: [colors.Va, colors.Vb, colors.Vc] }]},
+    type:'pie',
+    data:{ labels:['E_Act_Total','E_Rea_Total','E_App_Total'], datasets:[{ data:[0,0,0], backgroundColor:[colors.Va, colors.Vb, colors.Vc] }]},
     options: Object.assign({}, commonOptions, { plugins: { legend: { labels: { color: '#cfe6ff' } }, tooltip: commonOptions.plugins.tooltip } })
   });
 }
 
-function resetBuffers(){
+function setupChartsHistory(){
+  destroyChartIfExists("volt");
+  destroyChartIfExists("curr");
+  destroyChartIfExists("pact");
+  destroyChartIfExists("q");
+  destroyChartIfExists("s");
+  destroyChartIfExists("fp");
+  destroyChartIfExists("energ");
+
+  const white = '#ffffff';
+
+  charts.volt = new Chart(document.getElementById('chartVoltajes').getContext('2d'), {
+    type:'line',
+    data:{ labels, datasets:[
+      { label:'V_A', data:[], borderColor:colors.Va, pointBackgroundColor:colors.Va },
+      { label:'V_B', data:[], borderColor:colors.Vb, pointBackgroundColor:colors.Vb },
+      { label:'V_C', data:[], borderColor:colors.Vc, pointBackgroundColor:colors.Vc }
+    ]},
+    options: commonOptions
+  });
+
+  charts.curr = new Chart(document.getElementById('chartCorrientes').getContext('2d'), {
+    type:'line',
+    data:{ labels, datasets:[
+      { label:'I_A', data:[], borderColor:colors.Ia, pointBackgroundColor:colors.Ia },
+      { label:'I_B', data:[], borderColor:colors.Ib, pointBackgroundColor:colors.Ib },
+      { label:'I_C', data:[], borderColor:colors.Ic, pointBackgroundColor:colors.Ic }
+    ]},
+    options: commonOptions
+  });
+
+  charts.pact = new Chart(document.getElementById('chartPotActivas').getContext('2d'), {
+    type:'line',
+    data:{ labels, datasets:[
+      { label:'P_Act_A', data:[], borderColor:colors.Pa, pointBackgroundColor:colors.Pa },
+      { label:'P_Act_B', data:[], borderColor:colors.Pb, pointBackgroundColor:colors.Pb },
+      { label:'P_Act_C', data:[], borderColor:colors.Pc, pointBackgroundColor:colors.Pc },
+      { label:'P_Total',  data:[], borderColor:white, pointBackgroundColor:white }
+    ]},
+    options: commonOptions
+  });
+
+  charts.q = new Chart(document.getElementById('chartPotReactivas').getContext('2d'), {
+    type:'line',
+    data:{ labels, datasets:[
+      { label:'Q_A', data:[], borderColor:colors.Qa, pointBackgroundColor:colors.Qa },
+      { label:'Q_B', data:[], borderColor:colors.Qb, pointBackgroundColor:colors.Qb },
+      { label:'Q_C', data:[], borderColor:colors.Qc, pointBackgroundColor:colors.Qc },
+      { label:'Q_Total', data:[], borderColor:white, pointBackgroundColor:white }
+    ]},
+    options: commonOptions
+  });
+
+  charts.s = new Chart(document.getElementById('chartAparente').getContext('2d'), {
+    type:'line',
+    data:{ labels, datasets:[
+      { label:'S_A', data:[], borderColor:colors.Sa, pointBackgroundColor:colors.Sa },
+      { label:'S_B', data:[], borderColor:colors.Sb, pointBackgroundColor:colors.Sb },
+      { label:'S_C', data:[], borderColor:colors.Sc, pointBackgroundColor:colors.Sc },
+      { label:'S_Total', data:[], borderColor:white, pointBackgroundColor:white }
+    ]},
+    options: commonOptions
+  });
+
+  charts.fp = new Chart(document.getElementById('chartFP').getContext('2d'), {
+    type:'line',
+    data:{ labels, datasets:[
+      { label:'FP_A', data:[], borderColor:colors.FPa, pointBackgroundColor:colors.FPa },
+      { label:'FP_B', data:[], borderColor:colors.FPb, pointBackgroundColor:colors.FPb },
+      { label:'FP_C', data:[], borderColor:colors.FPc, pointBackgroundColor:colors.FPc },
+      { label:'FP_Total', data:[], borderColor:white, pointBackgroundColor:white }
+    ]},
+    options: commonOptions
+  });
+
+  charts.energ = new Chart(document.getElementById('chartEnergias').getContext('2d'), {
+    type:'line',
+    data:{ labels, datasets:[
+      { label:'E_Act_Total', data:[], borderColor:colors.Va, pointBackgroundColor:colors.Va },
+      { label:'E_Rea_Total', data:[], borderColor:colors.Vb, pointBackgroundColor:colors.Vb },
+      { label:'E_App_Total', data:[], borderColor:colors.Vc, pointBackgroundColor:colors.Vc }
+    ]},
+    options: commonOptions
+  });
+}
+
+function resetSeries(){
   labels.length = 0;
-  Object.keys(buf).forEach(k => buf[k].length = 0);
+  // vaciar datasets (no depende de buffers)
+  Object.values(charts).forEach(ch => {
+    if (!ch) return;
+    ch.data.labels = [];
+    ch.data.datasets.forEach(ds => ds.data = []);
+    ch.update();
+  });
 }
 
-function setMode(text){
-  document.getElementById('mode-pill').textContent = text;
-}
-
-/* -----------------------
+/* =======================
    TIEMPO REAL
------------------------ */
-let isFetching = false;
-let rtTimer = null;
-
+======================= */
 async function fetchAndUpdate(){
   if (isFetching) return;
   isFetching = true;
 
   try {
     const cols = COLUMNS.join(',');
-    const res = await fetch(`${GAS_WEB_APP_URL}?colsToQuery=${encodeURIComponent(cols)}`, { cache: 'no-store' });
+    const res = await fetch(`${GAS_WEB_APP_URL}?colsToQuery=${encodeURIComponent(cols)}`, { cache:'no-store' });
     const json = await res.json();
     if (json.status !== 'success') throw new Error(json.error || 'Backend error');
 
@@ -426,7 +509,7 @@ async function fetchAndUpdate(){
     const label = d._ts ? new Date(d._ts).toLocaleTimeString() : new Date().toLocaleTimeString();
     document.getElementById('last-update').textContent = label;
 
-    // UI valores
+    // UI
     document.getElementById('Va').textContent = fmt(d.Va);
     document.getElementById('Vb').textContent = fmt(d.Vb);
     document.getElementById('Vc').textContent = fmt(d.Vc);
@@ -471,27 +554,41 @@ async function fetchAndUpdate(){
     document.getElementById('server-status').classList.remove('text-red-400');
     document.getElementById('server-status').classList.add('text-green-400');
 
-    // push a gráficos tiempo real (mantiene 30)
+    // Actualizar charts RT (máx 30 puntos) solo para lineales
     labels.push(label);
-    buf.Va.push(num(d.Va)); buf.Vb.push(num(d.Vb)); buf.Vc.push(num(d.Vc));
-    buf.Ia.push(num(d.Ia)); buf.Ib.push(num(d.Ib)); buf.Ic.push(num(d.Ic));
-    buf.FPa.push(num(d.FPa)); buf.FPb.push(num(d.FPb)); buf.FPc.push(num(d.FPc));
+    if (labels.length > maxPointsRT) labels.shift();
 
-    if (labels.length > maxPointsRT){
-      labels.shift();
-      Object.keys(buf).forEach(k => buf[k].shift());
-    }
-
-    // update charts
+    // Volt
     charts.volt.data.labels = labels;
+    charts.volt.data.datasets[0].data.push(num(d.Va));
+    charts.volt.data.datasets[1].data.push(num(d.Vb));
+    charts.volt.data.datasets[2].data.push(num(d.Vc));
+    if (charts.volt.data.datasets[0].data.length > maxPointsRT) {
+      charts.volt.data.datasets.forEach(ds => ds.data.shift());
+    }
     charts.volt.update();
 
+    // Curr
     charts.curr.data.labels = labels;
+    charts.curr.data.datasets[0].data.push(num(d.Ia));
+    charts.curr.data.datasets[1].data.push(num(d.Ib));
+    charts.curr.data.datasets[2].data.push(num(d.Ic));
+    if (charts.curr.data.datasets[0].data.length > maxPointsRT) {
+      charts.curr.data.datasets.forEach(ds => ds.data.shift());
+    }
     charts.curr.update();
 
+    // FP
     charts.fp.data.labels = labels;
+    charts.fp.data.datasets[0].data.push(num(d.FPa));
+    charts.fp.data.datasets[1].data.push(num(d.FPb));
+    charts.fp.data.datasets[2].data.push(num(d.FPc));
+    if (charts.fp.data.datasets[0].data.length > maxPointsRT) {
+      charts.fp.data.datasets.forEach(ds => ds.data.shift());
+    }
     charts.fp.update();
 
+    // Bars + pie
     charts.pact.data.datasets[0].data = [ num(d.Pa), num(d.Pb), num(d.Pc) ];
     charts.pact.update();
 
@@ -514,18 +611,15 @@ async function fetchAndUpdate(){
   }
 }
 
-/* -----------------------
-   HISTÓRICO POR RANGO
------------------------ */
+/* =======================
+   HISTÓRICO (series)
+======================= */
 async function fetchHistory(){
   const from = document.getElementById("fromDT").value;
   const to = document.getElementById("toDT").value;
   const maxPoints = document.getElementById("maxPoints").value || 300;
 
-  if (!from || !to){
-    alert("Selecciona 'Desde' y 'Hasta'");
-    return;
-  }
+  if (!from || !to) { alert("Selecciona Desde y Hasta"); return; }
 
   const cols = COLUMNS.join(',');
   const url = `${GAS_WEB_APP_URL}?mode=history&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&maxPoints=${encodeURIComponent(maxPoints)}&colsToQuery=${encodeURIComponent(cols)}`;
@@ -534,123 +628,151 @@ async function fetchHistory(){
   document.getElementById('server-status').classList.remove('text-red-400');
   document.getElementById('server-status').classList.add('text-green-400');
 
-  try{
-    const res = await fetch(url, { cache: "no-store" });
-    const json = await res.json();
-    if (json.status !== "success") throw new Error(json.error || "Error histórico");
+  const res = await fetch(url, { cache:'no-store' });
+  const json = await res.json();
 
-    resetBuffers();
-
-    // labels (hora real de cada fila)
-    json.labels.forEach(ts => labels.push(new Date(ts).toLocaleTimeString()));
-
-    const s = json.series || {};
-    // Llenar buffers de líneas
-    (s.Va || []).forEach(v => buf.Va.push(Number(v)||0));
-    (s.Vb || []).forEach(v => buf.Vb.push(Number(v)||0));
-    (s.Vc || []).forEach(v => buf.Vc.push(Number(v)||0));
-
-    (s.Ia || []).forEach(v => buf.Ia.push(Number(v)||0));
-    (s.Ib || []).forEach(v => buf.Ib.push(Number(v)||0));
-    (s.Ic || []).forEach(v => buf.Ic.push(Number(v)||0));
-
-    (s.FPa || []).forEach(v => buf.FPa.push(Number(v)||0));
-    (s.FPb || []).forEach(v => buf.FPb.push(Number(v)||0));
-    (s.FPc || []).forEach(v => buf.FPc.push(Number(v)||0));
-
-    // update líneas
-    charts.volt.data.labels = labels; charts.volt.update();
-    charts.curr.data.labels = labels; charts.curr.update();
-    charts.fp.data.labels = labels; charts.fp.update();
-
-    // Para barras/pie: mostrar el último valor del rango
-    const last = arr => (arr && arr.length ? Number(arr[arr.length-1]) : 0);
-
-    charts.pact.data.datasets[0].data = [ last(s.Pa), last(s.Pb), last(s.Pc) ];
-    charts.pact.update();
-
-    charts.q.data.datasets[0].data = [ last(s.Qa), last(s.Qb), last(s.Qc) ];
-    charts.q.update();
-
-    charts.s.data.datasets[0].data = [ last(s.Sa), last(s.Sb), last(s.Sc) ];
-    charts.s.update();
-
-    charts.energ.data.datasets[0].data = [ last(s.E_Pt), last(s.E_Qt), last(s.E_St) ];
-    charts.energ.update();
-
-    // También actualizamos los “valores actuales” mostrando el último del rango
-    document.getElementById('Va').textContent = fmt(last(s.Va));
-    document.getElementById('Vb').textContent = fmt(last(s.Vb));
-    document.getElementById('Vc').textContent = fmt(last(s.Vc));
-
-    document.getElementById('Ia').textContent = fmt(last(s.Ia));
-    document.getElementById('Ib').textContent = fmt(last(s.Ib));
-    document.getElementById('Ic').textContent = fmt(last(s.Ic));
-
-    document.getElementById('Pa').textContent = fmt(last(s.Pa));
-    document.getElementById('Pb').textContent = fmt(last(s.Pb));
-    document.getElementById('Pc').textContent = fmt(last(s.Pc));
-    document.getElementById('P_Total').textContent = fmt(last(s.Pt));
-
-    document.getElementById('Qa').textContent = fmt(last(s.Qa));
-    document.getElementById('Qb').textContent = fmt(last(s.Qb));
-    document.getElementById('Qc').textContent = fmt(last(s.Qc));
-    document.getElementById('Q_Total').textContent = fmt(last(s.Qt));
-
-    document.getElementById('Sa').textContent = fmt(last(s.Sa));
-    document.getElementById('Sb').textContent = fmt(last(s.Sb));
-    document.getElementById('Sc').textContent = fmt(last(s.Sc));
-    document.getElementById('S_Total').textContent = fmt(last(s.St));
-
-    document.getElementById('FPa').textContent = fmt(last(s.FPa));
-    document.getElementById('FPb').textContent = fmt(last(s.FPb));
-    document.getElementById('FPc').textContent = fmt(last(s.FPc));
-    document.getElementById('FP_Total').textContent = fmt(last(s.FPt));
-
-    document.getElementById('E_Pt').textContent = fmt(last(s.E_Pt));
-    document.getElementById('E_Qt').textContent = fmt(last(s.E_Qt));
-    document.getElementById('E_St').textContent = fmt(last(s.E_St));
-
-    document.getElementById('res-Va').textContent = fmt(last(s.Va)) + ' V';
-    document.getElementById('res-Ia').textContent = fmt(last(s.Ia)) + ' A';
-    document.getElementById('res-Pt').textContent = fmt(last(s.Pt)) + ' W';
-    document.getElementById('res-FP').textContent = fmt(last(s.FPt));
-
-    document.getElementById('server-status').textContent = `Histórico (${json.count} pts)`;
-    document.getElementById('last-update').textContent = labels.length ? labels[labels.length-1] : '--:--:--';
-
-  } catch(err){
-    console.error(err);
-    document.getElementById('server-status').textContent = 'Error histórico';
-    document.getElementById('server-status').classList.remove('text-green-400');
-    document.getElementById('server-status').classList.add('text-red-400');
+  if (json.status !== "success") {
+    alert("Error histórico (backend): " + (json.error || "desconocido"));
+    throw new Error(json.error || "Error histórico");
   }
+  if (!json.count) {
+    alert("No hay datos en ese rango.");
+    return;
+  }
+
+  // labels reales del backend
+  labels = json.labels.map(ts => new Date(ts).toLocaleTimeString());
+
+  const s = json.series || {};
+  const arr = (k) => (s[k] || []).map(v => Number(v) || 0);
+  const last = (k) => (s[k] && s[k].length ? s[k][s[k].length-1] : null);
+
+  // Panel de valores (último punto del rango)
+  document.getElementById('Va').textContent = fmt(last("Va"));
+  document.getElementById('Vb').textContent = fmt(last("Vb"));
+  document.getElementById('Vc').textContent = fmt(last("Vc"));
+  document.getElementById('Vab').textContent = fmt(last("Vab"));
+  document.getElementById('Vbc').textContent = fmt(last("Vbc"));
+  document.getElementById('Vca').textContent = fmt(last("Vca"));
+
+  document.getElementById('Ia').textContent = fmt(last("Ia"));
+  document.getElementById('Ib').textContent = fmt(last("Ib"));
+  document.getElementById('Ic').textContent = fmt(last("Ic"));
+
+  document.getElementById('Pa').textContent = fmt(last("Pa"));
+  document.getElementById('Pb').textContent = fmt(last("Pb"));
+  document.getElementById('Pc').textContent = fmt(last("Pc"));
+  document.getElementById('P_Total').textContent = fmt(last("Pt"));
+
+  document.getElementById('Qa').textContent = fmt(last("Qa"));
+  document.getElementById('Qb').textContent = fmt(last("Qb"));
+  document.getElementById('Qc').textContent = fmt(last("Qc"));
+  document.getElementById('Q_Total').textContent = fmt(last("Qt"));
+
+  document.getElementById('Sa').textContent = fmt(last("Sa"));
+  document.getElementById('Sb').textContent = fmt(last("Sb"));
+  document.getElementById('Sc').textContent = fmt(last("Sc"));
+  document.getElementById('S_Total').textContent = fmt(last("St"));
+
+  document.getElementById('FPa').textContent = fmt(last("FPa"));
+  document.getElementById('FPb').textContent = fmt(last("FPb"));
+  document.getElementById('FPc').textContent = fmt(last("FPc"));
+  document.getElementById('FP_Total').textContent = fmt(last("FPt"));
+
+  document.getElementById('E_Pt').textContent = fmt(last("E_Pt"));
+  document.getElementById('E_Qt').textContent = fmt(last("E_Qt"));
+  document.getElementById('E_St').textContent = fmt(last("E_St"));
+
+  document.getElementById('res-Va').textContent = fmt(last("Va")) + ' V';
+  document.getElementById('res-Ia').textContent = fmt(last("Ia")) + ' A';
+  document.getElementById('res-Pt').textContent = fmt(last("Pt")) + ' W';
+  document.getElementById('res-FP').textContent = fmt(last("FPt"));
+
+  // ✅ Cargar series en charts (todas)
+  charts.volt.data.labels = labels;
+  charts.volt.data.datasets[0].data = arr("Va");
+  charts.volt.data.datasets[1].data = arr("Vb");
+  charts.volt.data.datasets[2].data = arr("Vc");
+  charts.volt.update();
+
+  charts.curr.data.labels = labels;
+  charts.curr.data.datasets[0].data = arr("Ia");
+  charts.curr.data.datasets[1].data = arr("Ib");
+  charts.curr.data.datasets[2].data = arr("Ic");
+  charts.curr.update();
+
+  charts.pact.data.labels = labels;
+  charts.pact.data.datasets[0].data = arr("Pa");
+  charts.pact.data.datasets[1].data = arr("Pb");
+  charts.pact.data.datasets[2].data = arr("Pc");
+  charts.pact.data.datasets[3].data = arr("Pt");
+  charts.pact.update();
+
+  charts.q.data.labels = labels;
+  charts.q.data.datasets[0].data = arr("Qa");
+  charts.q.data.datasets[1].data = arr("Qb");
+  charts.q.data.datasets[2].data = arr("Qc");
+  charts.q.data.datasets[3].data = arr("Qt");
+  charts.q.update();
+
+  charts.s.data.labels = labels;
+  charts.s.data.datasets[0].data = arr("Sa");
+  charts.s.data.datasets[1].data = arr("Sb");
+  charts.s.data.datasets[2].data = arr("Sc");
+  charts.s.data.datasets[3].data = arr("St");
+  charts.s.update();
+
+  charts.fp.data.labels = labels;
+  charts.fp.data.datasets[0].data = arr("FPa");
+  charts.fp.data.datasets[1].data = arr("FPb");
+  charts.fp.data.datasets[2].data = arr("FPc");
+  charts.fp.data.datasets[3].data = arr("FPt");
+  charts.fp.update();
+
+  charts.energ.data.labels = labels;
+  charts.energ.data.datasets[0].data = arr("E_Pt");
+  charts.energ.data.datasets[1].data = arr("E_Qt");
+  charts.energ.data.datasets[2].data = arr("E_St");
+  charts.energ.update();
+
+  document.getElementById('server-status').textContent = `Histórico (${json.count} pts)`;
+  document.getElementById('last-update').textContent = labels[labels.length - 1] || '--:--:--';
 }
 
-/* Init */
+/* =======================
+   INIT
+======================= */
 document.addEventListener('DOMContentLoaded', () => {
-  setupCharts();
+  setupChartsRealtime();
+  setMode("Tiempo real");
 
-  document.getElementById('btn-refresh').addEventListener('click', fetchAndUpdate);
+  document.getElementById('btn-refresh').addEventListener('click', () => {
+    if (currentMode === "realtime") fetchAndUpdate();
+    else fetchHistory();
+  });
 
   document.getElementById('btn-history').addEventListener('click', async () => {
     if (rtTimer) clearInterval(rtTimer);
+    currentMode = "history";
     setMode("Histórico");
+    setupChartsHistory();
     await fetchHistory();
   });
 
   document.getElementById('btn-realtime').addEventListener('click', () => {
     if (rtTimer) clearInterval(rtTimer);
+    currentMode = "realtime";
     setMode("Tiempo real");
+    setupChartsRealtime();
     fetchAndUpdate();
     rtTimer = setInterval(fetchAndUpdate, 3000);
   });
 
-  // Arranque por defecto
-  setMode("Tiempo real");
+  // Arranque
   fetchAndUpdate();
   rtTimer = setInterval(fetchAndUpdate, 3000);
 });
 </script>
+
 </body>
 </html>
