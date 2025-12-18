@@ -3,7 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SCADA - Fases</title>
+  <title>SCADA - Tiempo real</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     :root{
       --bg:#0b1220; --panel:#111b31; --line:rgba(255,255,255,.10);
@@ -18,7 +21,7 @@
     }
     .title{font-weight:900;letter-spacing:.6px}
     .sub{font-size:12px;color:var(--muted);margin-top:2px}
-    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    .wrap{max-width:1200px;margin:0 auto;padding:16px}
     .grid{display:grid;gap:12px;grid-template-columns:1fr}
     @media(min-width:900px){.grid{grid-template-columns:repeat(3,1fr)}}
     .card{
@@ -28,155 +31,188 @@
     .label{font-size:12px;color:var(--muted)}
     .kpi{margin-top:6px;font-size:34px;font-weight:900}
     .meta{margin-top:8px;font-size:11px;color:rgba(232,238,252,.55)}
-    .pre{
-      margin:10px 0 0;padding:10px;border-radius:12px;
-      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);
-      color:rgba(232,238,252,.85);overflow:auto;max-height:240px;font-size:12px
-    }
-    .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
     .lamp{
       width:18px;height:18px;border-radius:50%;
       background:#666;border:1px solid rgba(255,255,255,.12);
       box-shadow: inset 0 0 0 2px rgba(0,0,0,.2);
     }
+    .chartWrap{height:320px;margin-top:10px}
+    canvas{width:100% !important;height:100% !important;}
+    select,input{
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--text);
+      border-radius:10px;
+      padding:8px 10px;
+      outline:none;
+    }
+    input{width:90px}
+    pre{
+      white-space:pre-wrap;
+      max-height:220px;
+      overflow:auto;
+      background:rgba(255,255,255,.04);
+      padding:10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.08)
+    }
   </style>
 </head>
 
 <body>
-  <header class="topbar">
-    <div>
-      <div class="title">SCADA</div>
-      <div class="sub" id="status">Desconectado</div>
+<header class="topbar">
+  <div>
+    <div class="title">SCADA</div>
+    <div class="sub" id="status">Desconectado</div>
+  </div>
+  <div class="sub" id="clock">--</div>
+</header>
+
+<main class="wrap">
+  <section class="grid">
+    <div class="card">
+      <div class="label">Fase A</div>
+      <div class="kpi"><span id="fa">--</span></div>
+      <div class="meta">TAG: fa</div>
     </div>
-    <div class="sub" id="clock">--</div>
-  </header>
 
-  <main class="wrap">
-    <section class="grid">
-      <div class="card">
-        <div class="label">Fase A</div>
-        <div class="kpi"><span id="fa">--</span></div>
-        <div class="meta">TAG: fa</div>
+    <div class="card">
+      <div class="label">Fase B</div>
+      <div class="kpi"><span id="fb">--</span></div>
+      <div class="meta">TAG: fb</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Fase C</div>
+      <div class="kpi"><span id="fc">--</span></div>
+      <div class="meta">TAG: fc</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Fase D</div>
+      <div class="kpi"><span id="fd">--</span></div>
+      <div class="meta">TAG: fd</div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div>
+          <div class="label">Estado conexión</div>
+          <div class="kpi" style="font-size:18px" id="connTxt">DESCONECTADO</div>
+          <div class="meta" id="err">—</div>
+        </div>
+        <div class="lamp" id="connLamp"></div>
       </div>
+    </div>
 
-      <div class="card">
-        <div class="label">Fase B</div>
-        <div class="kpi"><span id="fb">--</span></div>
-        <div class="meta">TAG: fb</div>
-      </div>
-
-      <div class="card">
-        <div class="label">Fase C</div>
-        <div class="kpi"><span id="fc">--</span></div>
-        <div class="meta">TAG: fc</div>
-      </div>
-
-      <div class="card">
-        <div class="label">Fase D</div>
-        <div class="kpi"><span id="fd">--</span></div>
-        <div class="meta">TAG: fd</div>
-      </div>
-
-      <div class="card">
-        <div class="row">
-          <div>
-            <div class="label">Estado conexión</div>
-            <div class="kpi" style="font-size:18px" id="connTxt">DESCONECTADO</div>
-            <div class="meta" id="err">—</div>
-          </div>
-          <div class="lamp" id="connLamp"></div>
+    <div class="card" style="grid-column:1/-1">
+      <div class="row">
+        <div>
+          <div class="label">Gráfica en tiempo real</div>
+          <div class="meta">Últimos <span id="nLabel">60</span> puntos</div>
+        </div>
+        <div class="row" style="gap:8px">
+          <span class="meta">Señal</span>
+          <select id="series">
+            <option value="fa">FA</option>
+            <option value="fb">FB</option>
+            <option value="fc">FC</option>
+            <option value="fd">FD</option>
+          </select>
+          <span class="meta">Puntos</span>
+          <input id="nPoints" type="number" min="10" max="300" value="60" />
         </div>
       </div>
 
-      <div class="card">
-        <div class="label">Último registro (debug)</div>
-        <pre class="pre" id="raw">--</pre>
+      <div class="chartWrap">
+        <canvas id="chart"></canvas>
       </div>
-    </section>
-  </main>
 
-  <script>
-    // ===============================
-    // CONFIG
-    // ===============================
-    const WEBAPP_EXEC =
-      "https://script.google.com/macros/s/AKfycbwMs6HxuXwlmmt7O00yaf05MLGZfpMiAZWTtqs9njvzZgF8BUHomMIadGpkJwBCAwKV8A/exec";
+      <div class="meta" style="margin-top:10px">Debug</div>
+      <pre class="meta" id="raw">--</pre>
+    </div>
+  </section>
+</main>
 
-    const POLL_MS = 2000;
+<script>
+  // ✅ TU URL NUEVA
+  const EXEC = "https://script.google.com/macros/s/AKfycbx3k1r_PnEQGYr4ovEt_COTVxEoSlMEyjH6VkOwu3x56a77geBGkFflqq6xlTDnmNNzMA/exec";
+  const POLL_MS = 2000;
 
-    // ===============================
-    // UI helpers
-    // ===============================
-    function setText(id, v) { document.getElementById(id).textContent = v; }
+  function setText(id, v){ document.getElementById(id).textContent = v; }
 
-    function setConn(ok, msg) {
-      setText("connTxt", ok ? "CONECTADO" : "DESCONECTADO");
-      document.getElementById("connLamp").style.background = ok ? "rgba(46,229,157,.95)" : "#666";
-      setText("status", ok ? "Conectado" : "Desconectado");
-      setText("err", msg || "—");
-      setText("clock", new Date().toLocaleString());
+  function setConn(ok, msg){
+    setText("connTxt", ok ? "CONECTADO" : "DESCONECTADO");
+    document.getElementById("connLamp").style.background = ok ? "rgba(46,229,157,.95)" : "#666";
+    setText("status", ok ? "Conectado" : "Desconectado");
+    setText("err", msg || "—");
+    setText("clock", new Date().toLocaleString());
+  }
+
+  // JSONP (GitHub Pages + Apps Script)
+  function jsonp(url){
+    return new Promise((resolve,reject)=>{
+      const cb = "cb_" + Math.random().toString(36).slice(2);
+      window[cb] = (data)=>{ resolve(data); cleanup(); };
+
+      const s = document.createElement("script");
+      const sep = url.includes("?") ? "&" : "?";
+      s.src = url + sep + "callback=" + cb + "&_=" + Date.now();
+      s.onerror = ()=>{ reject(new Error("No se pudo conectar (JSONP)")); cleanup(); };
+
+      document.body.appendChild(s);
+
+      function cleanup(){ try{ delete window[cb]; }catch(e){} s.remove(); }
+    });
+  }
+
+  // Chart.js
+  const chart = new Chart(document.getElementById("chart"), {
+    type: "line",
+    data: { labels: [], datasets: [{ label: "FA", data: [], tension: 0.25, pointRadius: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: false }
+  });
+
+  function updateChart(rows, key){
+    chart.data.labels = rows.map(r => new Date(r.fecha).toLocaleTimeString());
+    chart.data.datasets[0].label = key.toUpperCase();
+    chart.data.datasets[0].data = rows.map(r => Number(r[key] ?? 0));
+    chart.update();
+  }
+
+  async function loop(){
+    try{
+      // 1) KPIs
+      const latest = await jsonp(EXEC + "?action=latest");
+      if (!latest || latest.ok === false) throw new Error(latest?.error || "Respuesta inválida");
+
+      setText("fa", latest.latest?.fa ?? "--");
+      setText("fb", latest.latest?.fb ?? "--");
+      setText("fc", latest.latest?.fc ?? "--");
+      setText("fd", latest.latest?.fd ?? "--");
+
+      // 2) Gráfica
+      const key = document.getElementById("series").value;
+      const n = Math.max(10, Math.min(300, parseInt(document.getElementById("nPoints").value || "60", 10)));
+      setText("nLabel", n);
+
+      const hist = await jsonp(EXEC + "?action=last&n=" + n);
+      if (!hist || hist.ok === false) throw new Error(hist?.error || "Error leyendo históricos");
+
+      updateChart(hist.rows || [], key);
+
+      setText("raw", JSON.stringify({ latest, hist }, null, 2));
+      setConn(true, "OK • " + new Date(latest.ts).toLocaleTimeString());
+
+    } catch(e){
+      setConn(false, e.message);
+    } finally {
+      setTimeout(loop, POLL_MS);
     }
+  }
 
-    // ===============================
-    // JSONP (la forma compatible con GitHub Pages + Apps Script)
-    // ===============================
-    function jsonp(url) {
-      return new Promise((resolve, reject) => {
-        const cbName = "cb_" + Math.random().toString(36).slice(2);
-
-        window[cbName] = (data) => { resolve(data); cleanup(); };
-
-        const s = document.createElement("script");
-        const sep = url.includes("?") ? "&" : "?";
-        s.src = url + sep + "callback=" + cbName + "&_=" + Date.now();
-        s.onerror = () => { reject(new Error("No se pudo cargar el script (JSONP)")); cleanup(); };
-        document.body.appendChild(s);
-
-        function cleanup() {
-          try { delete window[cbName]; } catch(e) {}
-          s.remove();
-        }
-      });
-    }
-
-    function latestUrl() {
-      // siempre pedimos action=latest
-      return WEBAPP_EXEC + "?action=latest";
-    }
-
-    function render(payload) {
-      if (!payload || payload.ok === false) {
-        setConn(false, payload?.error || "Respuesta inválida");
-        return;
-      }
-
-      if (!payload.latest) {
-        setConn(true, "Sin datos aún (no hay filas)");
-        setText("raw", JSON.stringify(payload, null, 2));
-        return;
-      }
-
-      setText("fa", payload.latest.fa ?? "--");
-      setText("fb", payload.latest.fb ?? "--");
-      setText("fc", payload.latest.fc ?? "--");
-      setText("fd", payload.latest.fd ?? "--");
-
-      setText("raw", JSON.stringify(payload, null, 2));
-      setConn(true, "OK • " + new Date(payload.ts).toLocaleTimeString());
-    }
-
-    async function loop() {
-      try {
-        const payload = await jsonp(latestUrl());
-        render(payload);
-      } catch (e) {
-        setConn(false, e.message);
-      } finally {
-        setTimeout(loop, POLL_MS);
-      }
-    }
-
-    loop();
-  </script>
+  loop();
+</script>
 </body>
 </html>
