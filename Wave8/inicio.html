@@ -96,9 +96,8 @@
   </main>
 
   <script>
-    // ✅ PEGA AQUÍ tu URL (la que te devuelve el JSON que mostraste)
+    // ✅ TU URL REAL /exec
     const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwWUNK_PpeptCsFy9Zy16MRQM-6WKawP3LR3lPW4NIx6jPqJtc1OoVZ2NrMUAFpPnnt/exec";
-
     const POLL_MS = 2000;
 
     function setStatus(text) {
@@ -112,13 +111,12 @@
     }
 
     function buildLatestUrl() {
-      // Evita duplicar action=latest
       return WEBAPP_URL.includes("action=latest")
         ? WEBAPP_URL
         : WEBAPP_URL + (WEBAPP_URL.includes("?") ? "&" : "?") + "action=latest";
     }
 
-    // JSONP (evita CORS). Agrega callback automáticamente.
+    // JSONP para evitar CORS (agrega callback automáticamente)
     function jsonp(url) {
       return new Promise((resolve, reject) => {
         const cbName = "cb_" + Math.random().toString(36).slice(2);
@@ -138,4 +136,58 @@
       });
     }
 
-    async function fetchJson(url)
+    // Fallback con fetch (si JSONP no se puede cargar)
+    async function fetchJson(url) {
+      const res = await fetch(url + (url.includes("?") ? "&" : "?") + "_=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return await res.json();
+    }
+
+    function render(payload) {
+      if (!payload || payload.ok === false) {
+        setConn(false);
+        setStatus("Error: " + (payload?.error || "respuesta inválida"));
+        return;
+      }
+
+      const latest = payload.latest;
+      if (!latest) {
+        setConn(true);
+        setStatus("Conectado • sin datos aún");
+        return;
+      }
+
+      document.getElementById("fa").textContent = latest.fa ?? "--";
+      document.getElementById("fb").textContent = latest.fb ?? "--";
+      document.getElementById("fc").textContent = latest.fc ?? "--";
+      document.getElementById("fd").textContent = latest.fd ?? "--";
+
+      document.getElementById("raw").textContent = JSON.stringify(payload, null, 2);
+
+      setConn(true);
+      setStatus("Conectado • " + new Date(payload.ts).toLocaleTimeString());
+    }
+
+    async function loop() {
+      const url = buildLatestUrl();
+
+      try {
+        const payload = await jsonp(url);
+        render(payload);
+      } catch (_) {
+        try {
+          const payload = await fetchJson(url);
+          render(payload);
+        } catch (e2) {
+          setConn(false);
+          setStatus("Desconectado • " + e2.message);
+        }
+      } finally {
+        setTimeout(loop, POLL_MS);
+      }
+    }
+
+    loop();
+  </script>
+</body>
+</html>
