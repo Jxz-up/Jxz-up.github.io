@@ -1,109 +1,218 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SCADA - Tiempo Real</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SCADA - Tiempo real</title>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<style>
-:root{
-  --bg:#0b1220; --panel:#111b31; --line:rgba(255,255,255,.10);
-  --text:#e8eefc; --muted:rgba(232,238,252,.70);
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui;background:var(--bg);color:var(--text)}
-.topbar{display:flex;justify-content:space-between;padding:14px;border-bottom:1px solid var(--line)}
-.wrap{max-width:1200px;margin:auto;padding:16px}
-.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
-.card{background:var(--panel);border-radius:16px;padding:14px}
-.kpi{font-size:34px;font-weight:900}
-.chartWrap{height:320px}
-canvas{width:100%!important;height:100%!important}
-select,input{background:#1b2542;color:white;border:none;padding:6px;border-radius:8px}
-</style>
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#111b31; --line:rgba(255,255,255,.10);
+      --text:#e8eefc; --muted:rgba(232,238,252,.70);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
+    .topbar{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:14px 16px;border-bottom:1px solid var(--line);
+      position:sticky;top:0;background:rgba(11,18,32,.92);backdrop-filter:blur(10px)
+    }
+    .title{font-weight:900;letter-spacing:.6px}
+    .sub{font-size:12px;color:var(--muted);margin-top:2px}
+    .wrap{max-width:1200px;margin:0 auto;padding:16px}
+    .grid{display:grid;gap:12px;grid-template-columns:1fr}
+    @media(min-width:900px){.grid{grid-template-columns:repeat(3,1fr)}}
+    .card{
+      background:var(--panel);border:1px solid var(--line);border-radius:16px;
+      padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.25)
+    }
+    .label{font-size:12px;color:var(--muted)}
+    .kpi{margin-top:6px;font-size:34px;font-weight:900}
+    .meta{margin-top:8px;font-size:11px;color:rgba(232,238,252,.55)}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .lamp{
+      width:18px;height:18px;border-radius:50%;
+      background:#666;border:1px solid rgba(255,255,255,.12);
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,.2);
+    }
+    .chartWrap{height:320px;margin-top:10px}
+    canvas{width:100% !important;height:100% !important;}
+    select,input{
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--text);
+      border-radius:10px;
+      padding:8px 10px;
+      outline:none;
+    }
+    input{width:90px}
+    pre{
+      white-space:pre-wrap;
+      max-height:220px;
+      overflow:auto;
+      background:rgba(255,255,255,.04);
+      padding:10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.08)
+    }
+  </style>
 </head>
 
 <body>
-<div class="topbar">
-  <b>SCADA</b>
-  <span id="status">Desconectado</span>
-</div>
+<header class="topbar">
+  <div>
+    <div class="title">SCADA</div>
+    <div class="sub" id="status">Desconectado</div>
+  </div>
+  <div class="sub" id="clock">--</div>
+</header>
 
-<div class="wrap">
-  <div class="grid">
-    <div class="card"><div>FA</div><div class="kpi" id="fa">--</div></div>
-    <div class="card"><div>FB</div><div class="kpi" id="fb">--</div></div>
-    <div class="card"><div>FC</div><div class="kpi" id="fc">--</div></div>
-    <div class="card"><div>FD</div><div class="kpi" id="fd">--</div></div>
+<main class="wrap">
+  <section class="grid">
+    <div class="card">
+      <div class="label">Fase A</div>
+      <div class="kpi"><span id="fa">--</span></div>
+      <div class="meta">TAG: fa</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Fase B</div>
+      <div class="kpi"><span id="fb">--</span></div>
+      <div class="meta">TAG: fb</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Fase C</div>
+      <div class="kpi"><span id="fc">--</span></div>
+      <div class="meta">TAG: fc</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Fase D</div>
+      <div class="kpi"><span id="fd">--</span></div>
+      <div class="meta">TAG: fd</div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div>
+          <div class="label">Estado conexión</div>
+          <div class="kpi" style="font-size:18px" id="connTxt">DESCONECTADO</div>
+          <div class="meta" id="err">—</div>
+        </div>
+        <div class="lamp" id="connLamp"></div>
+      </div>
+    </div>
 
     <div class="card" style="grid-column:1/-1">
-      <div>
-        Señal:
-        <select id="series">
-          <option value="fa">FA</option>
-          <option value="fb">FB</option>
-          <option value="fc">FC</option>
-          <option value="fd">FD</option>
-        </select>
-        Puntos:
-        <input id="nPoints" type="number" value="60" min="10" max="300">
+      <div class="row">
+        <div>
+          <div class="label">Gráfica en tiempo real</div>
+          <div class="meta">Últimos <span id="nLabel">60</span> puntos</div>
+        </div>
+        <div class="row" style="gap:8px">
+          <span class="meta">Señal</span>
+          <select id="series">
+            <option value="fa">FA</option>
+            <option value="fb">FB</option>
+            <option value="fc">FC</option>
+            <option value="fd">FD</option>
+          </select>
+          <span class="meta">Puntos</span>
+          <input id="nPoints" type="number" min="10" max="300" value="60" />
+        </div>
       </div>
+
       <div class="chartWrap">
         <canvas id="chart"></canvas>
       </div>
+
+      <div class="meta" style="margin-top:10px">Debug</div>
+      <pre class="meta" id="raw">--</pre>
     </div>
-  </div>
-</div>
+  </section>
+</main>
 
 <script>
-const EXEC =
-"https://script.google.com/macros/s/AKfycbx3k1r_PnEQGYr4ovEt_COTVxEoSlMEyjH6VkOwu3x56a77geBGkFflqq6xlTDnmNNzMA/exec";
+  // ✅ TU URL NUEVA
+  const EXEC = "https://script.google.com/macros/s/AKfycbx3k1r_PnEQGYr4ovEt_COTVxEoSlMEyjH6VkOwu3x56a77geBGkFflqq6xlTDnmNNzMA/exec";
+  const POLL_MS = 2000;
 
-const POLL=2000;
+  function setText(id, v){ document.getElementById(id).textContent = v; }
 
-function jsonp(url){
-  return new Promise((res,rej)=>{
-    const cb="cb_"+Math.random().toString(36).slice(2);
-    window[cb]=d=>{res(d);delete window[cb];s.remove()};
-    const s=document.createElement("script");
-    s.src=url+(url.includes("?")?"&":"?")+"callback="+cb+"&_="+Date.now();
-    s.onerror=()=>rej("JSONP error");
-    document.body.appendChild(s);
-  });
-}
-
-const chart=new Chart(document.getElementById("chart"),{
-  type:"line",
-  data:{labels:[],datasets:[{label:"FA",data:[],tension:.3}]},
-  options:{responsive:true,animation:false}
-});
-
-async function loop(){
-  try{
-    const latest=await jsonp(EXEC+"?action=latest");
-    ["fa","fb","fc","fd"].forEach(k=>{
-      document.getElementById(k).textContent=latest.latest?.[k]??"--";
-    });
-
-    const n=document.getElementById("nPoints").value;
-    const key=document.getElementById("series").value;
-    const hist=await jsonp(EXEC+"?action=last&n="+n);
-
-    chart.data.labels=hist.rows.map(r=>new Date(r.fecha).toLocaleTimeString());
-    chart.data.datasets[0].label=key.toUpperCase();
-    chart.data.datasets[0].data=hist.rows.map(r=>r[key]);
-    chart.update();
-
-    document.getElementById("status").textContent="Conectado";
-  }catch(e){
-    document.getElementById("status").textContent="Desconectado";
+  function setConn(ok, msg){
+    setText("connTxt", ok ? "CONECTADO" : "DESCONECTADO");
+    document.getElementById("connLamp").style.background = ok ? "rgba(46,229,157,.95)" : "#666";
+    setText("status", ok ? "Conectado" : "Desconectado");
+    setText("err", msg || "—");
+    setText("clock", new Date().toLocaleString());
   }
-  setTimeout(loop,POLL);
-}
 
-loop();
+  // JSONP (GitHub Pages + Apps Script)
+  function jsonp(url){
+    return new Promise((resolve,reject)=>{
+      const cb = "cb_" + Math.random().toString(36).slice(2);
+      window[cb] = (data)=>{ resolve(data); cleanup(); };
+
+      const s = document.createElement("script");
+      const sep = url.includes("?") ? "&" : "?";
+      s.src = url + sep + "callback=" + cb + "&_=" + Date.now();
+      s.onerror = ()=>{ reject(new Error("No se pudo conectar (JSONP)")); cleanup(); };
+
+      document.body.appendChild(s);
+
+      function cleanup(){ try{ delete window[cb]; }catch(e){} s.remove(); }
+    });
+  }
+
+  // Chart.js
+  const chart = new Chart(document.getElementById("chart"), {
+    type: "line",
+    data: { labels: [], datasets: [{ label: "FA", data: [], tension: 0.25, pointRadius: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: false }
+  });
+
+  function updateChart(rows, key){
+    chart.data.labels = rows.map(r => new Date(r.fecha).toLocaleTimeString());
+    chart.data.datasets[0].label = key.toUpperCase();
+    chart.data.datasets[0].data = rows.map(r => Number(r[key] ?? 0));
+    chart.update();
+  }
+
+  async function loop(){
+    try{
+      // 1) KPIs
+      const latest = await jsonp(EXEC + "?action=latest");
+      if (!latest || latest.ok === false) throw new Error(latest?.error || "Respuesta inválida");
+
+      setText("fa", latest.latest?.fa ?? "--");
+      setText("fb", latest.latest?.fb ?? "--");
+      setText("fc", latest.latest?.fc ?? "--");
+      setText("fd", latest.latest?.fd ?? "--");
+
+      // 2) Gráfica
+      const key = document.getElementById("series").value;
+      const n = Math.max(10, Math.min(300, parseInt(document.getElementById("nPoints").value || "60", 10)));
+      setText("nLabel", n);
+
+      const hist = await jsonp(EXEC + "?action=last&n=" + n);
+      if (!hist || hist.ok === false) throw new Error(hist?.error || "Error leyendo históricos");
+
+      updateChart(hist.rows || [], key);
+
+      setText("raw", JSON.stringify({ latest, hist }, null, 2));
+      setConn(true, "OK • " + new Date(latest.ts).toLocaleTimeString());
+
+    } catch(e){
+      setConn(false, e.message);
+    } finally {
+      setTimeout(loop, POLL_MS);
+    }
+  }
+
+  loop();
 </script>
 </body>
 </html>
