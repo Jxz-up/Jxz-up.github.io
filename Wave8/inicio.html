@@ -96,15 +96,7 @@
   </main>
 
   <script>
-    // ===============================
-    // SCADA (1 archivo) - Versión corregida
-    // ===============================
-
-    // ✅ PEGA AQUÍ tu URL REAL (la que te devuelve JSON en el navegador)
-    // Puede ser:
-    // - https://script.google.com/macros/s/XXXX/exec
-    // o (si te funciona):
-    // - https://script.googleusercontent.com/macros/echo?... (como en tu prueba)
+    // ✅ PEGA AQUÍ tu URL (la que te devuelve el JSON que mostraste)
     const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwWUNK_PpeptCsFy9Zy16MRQM-6WKawP3LR3lPW4NIx6jPqJtc1OoVZ2NrMUAFpPnnt/exec";
 
     const POLL_MS = 2000;
@@ -119,6 +111,13 @@
       document.getElementById("connLamp").style.background = ok ? "rgba(46,229,157,.95)" : "#666";
     }
 
+    function buildLatestUrl() {
+      // Evita duplicar action=latest
+      return WEBAPP_URL.includes("action=latest")
+        ? WEBAPP_URL
+        : WEBAPP_URL + (WEBAPP_URL.includes("?") ? "&" : "?") + "action=latest";
+    }
+
     // JSONP (evita CORS). Agrega callback automáticamente.
     function jsonp(url) {
       return new Promise((resolve, reject) => {
@@ -126,12 +125,10 @@
         window[cbName] = (data) => { resolve(data); cleanup(); };
 
         const s = document.createElement("script");
-
-        // IMPORTANTE: si ya tiene ?, usamos &, si no, usamos ?
         const sep = url.includes("?") ? "&" : "?";
         s.src = url + sep + "callback=" + cbName + "&_=" + Date.now();
 
-        s.onerror = () => { reject(new Error("No se pudo conectar")); cleanup(); };
+        s.onerror = () => { reject(new Error("JSONP falló")); cleanup(); };
         document.body.appendChild(s);
 
         function cleanup() {
@@ -141,51 +138,4 @@
       });
     }
 
-    function render(payload) {
-      if (!payload || payload.ok === false) {
-        setConn(false);
-        setStatus("Error: " + (payload?.error || "respuesta inválida"));
-        return;
-      }
-
-      const latest = payload.latest;
-      if (!latest) {
-        setConn(true);
-        setStatus("Conectado • sin datos aún");
-        return;
-      }
-
-      document.getElementById("fa").textContent = latest.fa ?? "--";
-      document.getElementById("fb").textContent = latest.fb ?? "--";
-      document.getElementById("fc").textContent = latest.fc ?? "--";
-      document.getElementById("fd").textContent = latest.fd ?? "--";
-
-      document.getElementById("raw").textContent = JSON.stringify(payload, null, 2);
-
-      setConn(true);
-      setStatus("Conectado • " + new Date(payload.ts).toLocaleTimeString());
-    }
-
-    async function loop() {
-      try {
-        // ✅ Evita duplicar action=latest
-        const base = WEBAPP_URL.includes("action=latest")
-          ? WEBAPP_URL
-          : WEBAPP_URL + (WEBAPP_URL.includes("?") ? "&" : "?") + "action=latest";
-
-        const payload = await jsonp(base);
-        render(payload);
-
-      } catch (e) {
-        setConn(false);
-        setStatus("Desconectado • " + e.message);
-      } finally {
-        setTimeout(loop, POLL_MS);
-      }
-    }
-
-    // Arranca
-    loop();
-  </script>
-</body>
-</html>
+    async function fetchJson(url)
