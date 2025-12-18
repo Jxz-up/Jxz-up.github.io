@@ -12,14 +12,18 @@
   :root{--bg:#0b1221;--muted:#94a3b8;}
   html,body{height:100%;background:radial-gradient(1200px 600px at 10% 10%, rgba(59,130,246,0.05), transparent), var(--bg); color:#e6eef8; margin:0; font-family:Inter, system-ui;}
   .glass{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.04); backdrop-filter: blur(6px); }
+  .neon{ box-shadow: 0 6px 18px rgba(59,130,246,0.06); }
   .small-muted{ color: var(--muted); font-size:0.88rem; }
   .status-pill{ padding:6px 10px; border-radius:999px; font-size:0.82rem; background: rgba(255,255,255,0.02); }
   .data-row{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,0.02); }
   .key{ color:var(--muted); font-size:0.9rem; }
   .val{ font-weight:600; }
+  .nav-link{ display:flex; gap:12px; align-items:center; padding:10px 12px; border-radius:8px; color:#cfe6ff; }
+  .nav-link:hover{ background:rgba(255,255,255,0.02); transform:translateX(4px); transition:all .15s; }
   aside { position: fixed; top: 0; left: 0; height: 100vh; width: 18rem; overflow-y: auto; z-index: 50; padding: 1rem; }
   main { margin-left: 18rem; padding: 1.5rem; }
   .chart-card { padding:12px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015)); border:1px solid rgba(255,255,255,0.03); height: 280px; }
+  canvas { width:100% !important; height:100% !important; }
   input[type="datetime-local"] { color-scheme: dark; }
 </style>
 </head>
@@ -27,11 +31,22 @@
 <body>
 <div class="min-h-screen flex">
   <aside class="w-72 p-4">
-    <div class="glass rounded-2xl h-full p-4 flex flex-col">
+    <div class="glass rounded-2xl h-full p-4 flex flex-col neon">
       <div class="mb-6">
         <h2 class="text-2xl font-bold">PZEM SCADA</h2>
         <p class="small-muted mt-1">Tiempo real + histórico por rango</p>
       </div>
+
+      <nav class="mt-4 flex-1">
+        <a href="#historico" class="nav-link">🕒 Histórico</a>
+        <a href="#voltajes" class="nav-link">⚡ Voltajes</a>
+        <a href="#corrientes" class="nav-link">🔌 Corrientes</a>
+        <a href="#potencias" class="nav-link">🔋 Potencias Activas</a>
+        <a href="#reactivas" class="nav-link">↩️ Reactivas</a>
+        <a href="#aparente" class="nav-link">🔶 Aparente</a>
+        <a href="#fp" class="nav-link">🔁 FP</a>
+        <a href="#energias" class="nav-link">📊 Energías</a>
+      </nav>
 
       <div class="mt-auto text-xs small-muted">
         <div>Últ. actualización: <span id="last-update">--:--:--</span></div>
@@ -51,7 +66,8 @@
       <button id="btn-refresh" class="glass status-pill">Refrescar</button>
     </header>
 
-    <section class="mb-6 glass rounded-xl p-4">
+    <!-- HISTÓRICO -->
+    <section id="historico" class="mb-6 glass rounded-xl p-4">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-lg font-bold">Histórico por rango</h2>
@@ -71,7 +87,7 @@
         </div>
         <div>
           <div class="small-muted mb-1">Máx. puntos</div>
-          <input id="maxPoints" type="number" min="50" max="2000" value="300" class="glass w-full p-2 rounded-xl" />
+          <input id="maxPoints" type="number" min="50" max="5000" value="300" class="glass w-full p-2 rounded-xl" />
         </div>
         <div class="flex gap-2 items-end">
           <button id="btn-history" class="glass status-pill w-full">Ver histórico</button>
@@ -80,7 +96,8 @@
       </div>
     </section>
 
-    <section class="mb-8">
+    <!-- VOLTAJES -->
+    <section id="voltajes" class="mb-8">
       <h2 class="text-lg font-bold mb-2">Voltajes (V_A, V_B, V_C)</h2>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div class="glass rounded-xl p-4">
@@ -89,6 +106,9 @@
             <div class="data-row"><div class="key">V_A</div><div class="val" id="Va">--</div></div>
             <div class="data-row"><div class="key">V_B</div><div class="val" id="Vb">--</div></div>
             <div class="data-row"><div class="key">V_C</div><div class="val" id="Vc">--</div></div>
+            <div class="data-row"><div class="key">Vab</div><div class="val" id="Vab">--</div></div>
+            <div class="data-row"><div class="key">Vbc</div><div class="val" id="Vbc">--</div></div>
+            <div class="data-row"><div class="key">Vca</div><div class="val" id="Vca">--</div></div>
           </div>
         </div>
         <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
@@ -97,59 +117,284 @@
       </div>
     </section>
 
+    <!-- CORRIENTES -->
+    <section id="corrientes" class="mb-8">
+      <h2 class="text-lg font-bold mb-2">Corrientes (I_A, I_B, I_C)</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">I_A</div><div class="val" id="Ia">--</div></div>
+            <div class="data-row"><div class="key">I_B</div><div class="val" id="Ib">--</div></div>
+            <div class="data-row"><div class="key">I_C</div><div class="val" id="Ic">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartCorrientes"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- POTENCIAS ACTIVAS -->
+    <section id="potencias" class="mb-8">
+      <h2 class="text-lg font-bold mb-2">Potencias activas (P_Act_A, P_Act_B, P_Act_C, P_Total)</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">P_A</div><div class="val" id="Pa">--</div></div>
+            <div class="data-row"><div class="key">P_B</div><div class="val" id="Pb">--</div></div>
+            <div class="data-row"><div class="key">P_C</div><div class="val" id="Pc">--</div></div>
+            <div class="data-row"><div class="key">P_Total</div><div class="val" id="Pt">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartActivas"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- REACTIVAS -->
+    <section id="reactivas" class="mb-8">
+      <h2 class="text-lg font-bold mb-2">Potencias reactivas (Q_A, Q_B, Q_C, Q_Total)</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">Q_A</div><div class="val" id="Qa">--</div></div>
+            <div class="data-row"><div class="key">Q_B</div><div class="val" id="Qb">--</div></div>
+            <div class="data-row"><div class="key">Q_C</div><div class="val" id="Qc">--</div></div>
+            <div class="data-row"><div class="key">Q_Total</div><div class="val" id="Qt">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartReactivas"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- APARENTE -->
+    <section id="aparente" class="mb-8">
+      <h2 class="text-lg font-bold mb-2">Potencia aparente (S_A, S_B, S_C, S_Total)</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">S_A</div><div class="val" id="Sa">--</div></div>
+            <div class="data-row"><div class="key">S_B</div><div class="val" id="Sb">--</div></div>
+            <div class="data-row"><div class="key">S_C</div><div class="val" id="Sc">--</div></div>
+            <div class="data-row"><div class="key">S_Total</div><div class="val" id="St">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartAparente"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- FP -->
+    <section id="fp" class="mb-8">
+      <h2 class="text-lg font-bold mb-2">Factor de Potencia (FP_A, FP_B, FP_C, FP_Total)</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">FP_A</div><div class="val" id="FPa">--</div></div>
+            <div class="data-row"><div class="key">FP_B</div><div class="val" id="FPb">--</div></div>
+            <div class="data-row"><div class="key">FP_C</div><div class="val" id="FPc">--</div></div>
+            <div class="data-row"><div class="key">FP_Total</div><div class="val" id="FPt">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartFP"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ENERGÍAS -->
+    <section id="energias" class="mb-12">
+      <h2 class="text-lg font-bold mb-2">Energías (E_Act, E_Rea, E_App)</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="glass rounded-xl p-4">
+          <div class="small-muted">Valores actuales</div>
+          <div class="mt-2">
+            <div class="data-row"><div class="key">E_Act</div><div class="val" id="Eact">--</div></div>
+            <div class="data-row"><div class="key">E_Rea</div><div class="val" id="Erea">--</div></div>
+            <div class="data-row"><div class="key">E_App</div><div class="val" id="Eapp">--</div></div>
+          </div>
+        </div>
+        <div class="glass rounded-xl p-4 lg:col-span-2 chart-card">
+          <canvas id="chartEnergias"></canvas>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 
 <script>
 /* ===================== CONFIG ===================== */
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz-jPO_x4ET5kNeDTrQVnLBAYpiMMux7I5TGPCnEYHd-8stih6ci2OC4iESWrA_Uk5q/exec"; // <-- CAMBIA ESTO
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz-jPO_x4ET5kNeDTrQVnLBAYpiMMux7I5TGPCnEYHd-8stih6ci2OC4iESWrA_Uk5q/exec"; // <-- CAMBIA AQUÍ
 
-const COLUMNS = ["Va","Vb","Vc"];
+const COLUMNS = [
+  "Va","Vb","Vc","Vab","Vbc","Vca",
+  "Ia","Ib","Ic",
+  "Pa","Pb","Pc","Pt",
+  "Qa","Qb","Qc","Qt",
+  "Sa","Sb","Sc","St",
+  "FPa","FPb","FPc","FPt",
+  "E_Pt","E_Qt","E_St"
+];
+
 const fmt = v => (v === null || v === undefined || v === "" ? "--" : (isNaN(Number(v)) ? v : Number(v).toFixed(2)));
+const num = v => (v === null || v === undefined || v === "" ? 0 : Number(v) || 0);
 
-let labels = [];
 let charts = {};
+let labels = [];
 let currentMode = "realtime";
 let rtTimer = null;
+
+function setMode(text){ document.getElementById('mode-pill').textContent = text; }
+function setHistoryMsg(t){ document.getElementById('history-msg').textContent = t || ""; }
 
 const commonOptions = {
   responsive: true,
   interaction: { mode: 'index', intersect: false },
   plugins: { legend: { labels: { color: '#cfe6ff' } } },
   scales: {
-    x: { ticks: { color: '#9fb5ff' }, grid: { color: 'rgba(255,255,255,0.02)' } },
+    x: { ticks: { color: '#9fb5ff', maxRotation: 45, minRotation: 20 }, grid: { color: 'rgba(255,255,255,0.02)' } },
     y: { ticks: { color: '#9fb5ff' }, grid: { color: 'rgba(255,255,255,0.03)' } }
   },
   maintainAspectRatio: false
 };
 
-function setMode(text){ document.getElementById('mode-pill').textContent = text; }
-function setHistoryMsg(t){ document.getElementById('history-msg').textContent = t || ""; }
-
-function setupChart(){
-  if (charts.volt) charts.volt.destroy();
-  charts.volt = new Chart(document.getElementById('chartVoltajes').getContext('2d'), {
-    type:'line',
-    data:{ labels, datasets:[
-      { label:'V_A', data:[], borderColor:'#60a5fa' },
-      { label:'V_B', data:[], borderColor:'#f472b6' },
-      { label:'V_C', data:[], borderColor:'#f59e0b' }
-    ]},
-    options: commonOptions
-  });
-}
-
-/* ======== Helper: datetime-local value ======== */
+/* ===== datetime-local helper ===== */
 function toDTLocalValue(d){
   const pad = n => String(n).padStart(2,'0');
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
-
 function initDefaultRange(){
   const now = new Date();
-  const from = new Date(now.getTime() - 30*60*1000); // últimos 30 min
+  const from = new Date(now.getTime() - 30*60*1000);
   document.getElementById("toDT").value = toDTLocalValue(now);
   document.getElementById("fromDT").value = toDTLocalValue(from);
+}
+
+/* ===== chart factory ===== */
+function lineChart(canvasId, series){
+  return new Chart(document.getElementById(canvasId).getContext('2d'), {
+    type:'line',
+    data:{ labels, datasets: series.map(s => ({
+      label: s.label,
+      data: [],
+      borderColor: s.color,
+      pointBackgroundColor: s.color,
+      stepped: true
+    }))},
+    options: commonOptions
+  });
+}
+
+function destroyAll(){
+  Object.keys(charts).forEach(k => { if (charts[k]) charts[k].destroy(); });
+  charts = {};
+}
+
+function setupChartsRealtime(){
+  destroyAll();
+
+  charts.volt = lineChart("chartVoltajes", [
+    {label:"V_A", color:"#60a5fa"},
+    {label:"V_B", color:"#f472b6"},
+    {label:"V_C", color:"#f59e0b"},
+  ]);
+
+  charts.curr = lineChart("chartCorrientes", [
+    {label:"I_A", color:"#34d399"},
+    {label:"I_B", color:"#60a5fa"},
+    {label:"I_C", color:"#f472b6"},
+  ]);
+
+  // Tiempo real: potencias barras
+  charts.pact = new Chart(document.getElementById("chartActivas").getContext("2d"),{
+    type:"bar",
+    data:{ labels:["P_A","P_B","P_C"], datasets:[{label:"W", data:[0,0,0], backgroundColor:["#3b82f6","#7c3aed","#06b6d4"]}]},
+    options: commonOptions
+  });
+
+  charts.q = new Chart(document.getElementById("chartReactivas").getContext("2d"),{
+    type:"bar",
+    data:{ labels:["Q_A","Q_B","Q_C"], datasets:[{label:"VAR", data:[0,0,0], backgroundColor:["#f59e0b","#fb923c","#fb7185"]}]},
+    options: commonOptions
+  });
+
+  charts.s = new Chart(document.getElementById("chartAparente").getContext("2d"),{
+    type:"bar",
+    data:{ labels:["S_A","S_B","S_C"], datasets:[{label:"VA", data:[0,0,0], backgroundColor:["#ef4444","#f43f5e","#fb7185"]}]},
+    options: commonOptions
+  });
+
+  charts.fp = lineChart("chartFP", [
+    {label:"FP_A", color:"#60a5fa"},
+    {label:"FP_B", color:"#7c3aed"},
+    {label:"FP_C", color:"#06b6d4"},
+  ]);
+
+  // Tiempo real: energías pie
+  charts.energ = new Chart(document.getElementById("chartEnergias").getContext("2d"),{
+    type:"pie",
+    data:{ labels:["E_Act","E_Rea","E_App"], datasets:[{data:[0,0,0], backgroundColor:["#60a5fa","#f472b6","#f59e0b"]}]},
+    options: { responsive:true, plugins:{ legend:{ labels:{ color:"#cfe6ff"} } } }
+  });
+}
+
+function setupChartsHistory(){
+  destroyAll();
+
+  charts.volt = lineChart("chartVoltajes", [
+    {label:"V_A", color:"#60a5fa"},
+    {label:"V_B", color:"#f472b6"},
+    {label:"V_C", color:"#f59e0b"},
+  ]);
+
+  charts.curr = lineChart("chartCorrientes", [
+    {label:"I_A", color:"#34d399"},
+    {label:"I_B", color:"#60a5fa"},
+    {label:"I_C", color:"#f472b6"},
+  ]);
+
+  charts.pact = lineChart("chartActivas", [
+    {label:"P_A", color:"#3b82f6"},
+    {label:"P_B", color:"#7c3aed"},
+    {label:"P_C", color:"#06b6d4"},
+    {label:"P_Total", color:"#ffffff"},
+  ]);
+
+  charts.q = lineChart("chartReactivas", [
+    {label:"Q_A", color:"#f59e0b"},
+    {label:"Q_B", color:"#fb923c"},
+    {label:"Q_C", color:"#fb7185"},
+    {label:"Q_Total", color:"#ffffff"},
+  ]);
+
+  charts.s = lineChart("chartAparente", [
+    {label:"S_A", color:"#ef4444"},
+    {label:"S_B", color:"#f43f5e"},
+    {label:"S_C", color:"#fb7185"},
+    {label:"S_Total", color:"#ffffff"},
+  ]);
+
+  charts.fp = lineChart("chartFP", [
+    {label:"FP_A", color:"#60a5fa"},
+    {label:"FP_B", color:"#7c3aed"},
+    {label:"FP_C", color:"#06b6d4"},
+    {label:"FP_Total", color:"#ffffff"},
+  ]);
+
+  charts.energ = lineChart("chartEnergias", [
+    {label:"E_Act", color:"#60a5fa"},
+    {label:"E_Rea", color:"#f472b6"},
+    {label:"E_App", color:"#f59e0b"},
+  ]);
 }
 
 /* ===================== REALTIME ===================== */
@@ -168,20 +413,84 @@ async function fetchRealtime(){
     document.getElementById('server-status').textContent = "Conectado";
     setHistoryMsg("");
 
+    // UI
     document.getElementById("Va").textContent = fmt(d.Va);
     document.getElementById("Vb").textContent = fmt(d.Vb);
     document.getElementById("Vc").textContent = fmt(d.Vc);
+    document.getElementById("Vab").textContent = fmt(d.Vab);
+    document.getElementById("Vbc").textContent = fmt(d.Vbc);
+    document.getElementById("Vca").textContent = fmt(d.Vca);
 
+    document.getElementById("Ia").textContent = fmt(d.Ia);
+    document.getElementById("Ib").textContent = fmt(d.Ib);
+    document.getElementById("Ic").textContent = fmt(d.Ic);
+
+    document.getElementById("Pa").textContent = fmt(d.Pa);
+    document.getElementById("Pb").textContent = fmt(d.Pb);
+    document.getElementById("Pc").textContent = fmt(d.Pc);
+    document.getElementById("Pt").textContent = fmt(d.Pt);
+
+    document.getElementById("Qa").textContent = fmt(d.Qa);
+    document.getElementById("Qb").textContent = fmt(d.Qb);
+    document.getElementById("Qc").textContent = fmt(d.Qc);
+    document.getElementById("Qt").textContent = fmt(d.Qt);
+
+    document.getElementById("Sa").textContent = fmt(d.Sa);
+    document.getElementById("Sb").textContent = fmt(d.Sb);
+    document.getElementById("Sc").textContent = fmt(d.Sc);
+    document.getElementById("St").textContent = fmt(d.St);
+
+    document.getElementById("FPa").textContent = fmt(d.FPa);
+    document.getElementById("FPb").textContent = fmt(d.FPb);
+    document.getElementById("FPc").textContent = fmt(d.FPc);
+    document.getElementById("FPt").textContent = fmt(d.FPt);
+
+    document.getElementById("Eact").textContent = fmt(d.E_Pt);
+    document.getElementById("Erea").textContent = fmt(d.E_Qt);
+    document.getElementById("Eapp").textContent = fmt(d.E_St);
+
+    // series RT (solo líneas)
     labels.push(label);
     if (labels.length > 30) labels.shift();
 
+    // volt
     charts.volt.data.labels = labels;
-    charts.volt.data.datasets[0].data.push(Number(d.Va) || 0);
-    charts.volt.data.datasets[1].data.push(Number(d.Vb) || 0);
-    charts.volt.data.datasets[2].data.push(Number(d.Vc) || 0);
-
+    charts.volt.data.datasets[0].data.push(num(d.Va));
+    charts.volt.data.datasets[1].data.push(num(d.Vb));
+    charts.volt.data.datasets[2].data.push(num(d.Vc));
     charts.volt.data.datasets.forEach(ds => { if (ds.data.length > 30) ds.data.shift(); });
     charts.volt.update();
+
+    // curr
+    charts.curr.data.labels = labels;
+    charts.curr.data.datasets[0].data.push(num(d.Ia));
+    charts.curr.data.datasets[1].data.push(num(d.Ib));
+    charts.curr.data.datasets[2].data.push(num(d.Ic));
+    charts.curr.data.datasets.forEach(ds => { if (ds.data.length > 30) ds.data.shift(); });
+    charts.curr.update();
+
+    // FP
+    charts.fp.data.labels = labels;
+    charts.fp.data.datasets[0].data.push(num(d.FPa));
+    charts.fp.data.datasets[1].data.push(num(d.FPb));
+    charts.fp.data.datasets[2].data.push(num(d.FPc));
+    charts.fp.data.datasets.forEach(ds => { if (ds.data.length > 30) ds.data.shift(); });
+    charts.fp.update();
+
+    // Bars
+    charts.pact.data.datasets[0].data = [num(d.Pa), num(d.Pb), num(d.Pc)];
+    charts.pact.update();
+
+    charts.q.data.datasets[0].data = [num(d.Qa), num(d.Qb), num(d.Qc)];
+    charts.q.update();
+
+    charts.s.data.datasets[0].data = [num(d.Sa), num(d.Sb), num(d.Sc)];
+    charts.s.update();
+
+    // Pie
+    charts.energ.data.datasets[0].data = [num(d.E_Pt), num(d.E_Qt), num(d.E_St)];
+    charts.energ.update();
+
   }catch(err){
     console.error(err);
     document.getElementById('server-status').textContent = "Error";
@@ -215,31 +524,112 @@ async function fetchHistory(){
   }
 
   if (!json.count){
-    // ESTE ES TU CASO ACTUAL (rango sin datos)
-    setHistoryMsg("⚠️ No hay datos en ese rango. Usa un rango que incluya los últimos minutos donde hay lecturas.");
+    setHistoryMsg("⚠️ No hay datos en ese rango. Prueba con un rango que incluya lecturas reales.");
     document.getElementById('server-status').textContent = "Histórico (0 pts)";
     return;
   }
 
-  // ✅ CLAVE: NO reasignar labels, solo vaciar y rellenar (mantener referencia)
+  // ✅ mantener referencia
   labels.length = 0;
-  json.labels.forEach(ts => labels.push(new Date(ts).toLocaleTimeString()));
+  json.labels.forEach(ts => {
+    const d = new Date(ts);
+    labels.push(d.toLocaleString([], { hour:"2-digit", minute:"2-digit", second:"2-digit" }));
+  });
 
-  const toNumArray = (k) => (json.series?.[k] || []).map(v => Number(v) || 0);
+  const arr = (k) => (json.series?.[k] || []).map(v => Number(v) || 0);
+  const last = (k) => {
+    const a = json.series?.[k];
+    return (a && a.length) ? a[a.length - 1] : null;
+  };
 
+  // UI último valor del rango
+  document.getElementById("Va").textContent = fmt(last("Va"));
+  document.getElementById("Vb").textContent = fmt(last("Vb"));
+  document.getElementById("Vc").textContent = fmt(last("Vc"));
+  document.getElementById("Vab").textContent = fmt(last("Vab"));
+  document.getElementById("Vbc").textContent = fmt(last("Vbc"));
+  document.getElementById("Vca").textContent = fmt(last("Vca"));
+
+  document.getElementById("Ia").textContent = fmt(last("Ia"));
+  document.getElementById("Ib").textContent = fmt(last("Ib"));
+  document.getElementById("Ic").textContent = fmt(last("Ic"));
+
+  document.getElementById("Pa").textContent = fmt(last("Pa"));
+  document.getElementById("Pb").textContent = fmt(last("Pb"));
+  document.getElementById("Pc").textContent = fmt(last("Pc"));
+  document.getElementById("Pt").textContent = fmt(last("Pt"));
+
+  document.getElementById("Qa").textContent = fmt(last("Qa"));
+  document.getElementById("Qb").textContent = fmt(last("Qb"));
+  document.getElementById("Qc").textContent = fmt(last("Qc"));
+  document.getElementById("Qt").textContent = fmt(last("Qt"));
+
+  document.getElementById("Sa").textContent = fmt(last("Sa"));
+  document.getElementById("Sb").textContent = fmt(last("Sb"));
+  document.getElementById("Sc").textContent = fmt(last("Sc"));
+  document.getElementById("St").textContent = fmt(last("St"));
+
+  document.getElementById("FPa").textContent = fmt(last("FPa"));
+  document.getElementById("FPb").textContent = fmt(last("FPb"));
+  document.getElementById("FPc").textContent = fmt(last("FPc"));
+  document.getElementById("FPt").textContent = fmt(last("FPt"));
+
+  document.getElementById("Eact").textContent = fmt(last("E_Pt"));
+  document.getElementById("Erea").textContent = fmt(last("E_Qt"));
+  document.getElementById("Eapp").textContent = fmt(last("E_St"));
+
+  // VOLTAJES
   charts.volt.data.labels = labels;
-  charts.volt.data.datasets[0].data = toNumArray("Va");
-  charts.volt.data.datasets[1].data = toNumArray("Vb");
-  charts.volt.data.datasets[2].data = toNumArray("Vc");
+  charts.volt.data.datasets[0].data = arr("Va");
+  charts.volt.data.datasets[1].data = arr("Vb");
+  charts.volt.data.datasets[2].data = arr("Vc");
   charts.volt.update();
 
-  // último valor del rango para panel
-  const aVa = json.series?.Va || [];
-  const aVb = json.series?.Vb || [];
-  const aVc = json.series?.Vc || [];
-  document.getElementById("Va").textContent = fmt(aVa[aVa.length-1]);
-  document.getElementById("Vb").textContent = fmt(aVb[aVb.length-1]);
-  document.getElementById("Vc").textContent = fmt(aVc[aVc.length-1]);
+  // CORRIENTES
+  charts.curr.data.labels = labels;
+  charts.curr.data.datasets[0].data = arr("Ia");
+  charts.curr.data.datasets[1].data = arr("Ib");
+  charts.curr.data.datasets[2].data = arr("Ic");
+  charts.curr.update();
+
+  // ACTIVAS + TOTAL
+  charts.pact.data.labels = labels;
+  charts.pact.data.datasets[0].data = arr("Pa");
+  charts.pact.data.datasets[1].data = arr("Pb");
+  charts.pact.data.datasets[2].data = arr("Pc");
+  charts.pact.data.datasets[3].data = arr("Pt");
+  charts.pact.update();
+
+  // REACTIVAS + TOTAL
+  charts.q.data.labels = labels;
+  charts.q.data.datasets[0].data = arr("Qa");
+  charts.q.data.datasets[1].data = arr("Qb");
+  charts.q.data.datasets[2].data = arr("Qc");
+  charts.q.data.datasets[3].data = arr("Qt");
+  charts.q.update();
+
+  // APARENTE + TOTAL
+  charts.s.data.labels = labels;
+  charts.s.data.datasets[0].data = arr("Sa");
+  charts.s.data.datasets[1].data = arr("Sb");
+  charts.s.data.datasets[2].data = arr("Sc");
+  charts.s.data.datasets[3].data = arr("St");
+  charts.s.update();
+
+  // FP + TOTAL
+  charts.fp.data.labels = labels;
+  charts.fp.data.datasets[0].data = arr("FPa");
+  charts.fp.data.datasets[1].data = arr("FPb");
+  charts.fp.data.datasets[2].data = arr("FPc");
+  charts.fp.data.datasets[3].data = arr("FPt");
+  charts.fp.update();
+
+  // ENERGÍAS
+  charts.energ.data.labels = labels;
+  charts.energ.data.datasets[0].data = arr("E_Pt");
+  charts.energ.data.datasets[1].data = arr("E_Qt");
+  charts.energ.data.datasets[2].data = arr("E_St");
+  charts.energ.update();
 
   document.getElementById('server-status').textContent = `Histórico (${json.count} pts)`;
   document.getElementById('last-update').textContent = labels[labels.length-1] || "--:--:--";
@@ -247,8 +637,9 @@ async function fetchHistory(){
 
 /* ===================== INIT ===================== */
 document.addEventListener("DOMContentLoaded", () => {
-  setupChart();
+  setupChartsRealtime();
   initDefaultRange();
+  setMode("Tiempo real");
 
   document.getElementById("btn-refresh").addEventListener("click", () => {
     if (currentMode === "realtime") fetchRealtime();
@@ -259,6 +650,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (rtTimer) clearInterval(rtTimer);
     currentMode = "history";
     setMode("Histórico");
+    setupChartsHistory();
     await fetchHistory();
   });
 
@@ -266,15 +658,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (rtTimer) clearInterval(rtTimer);
     currentMode = "realtime";
     setMode("Tiempo real");
+    setupChartsRealtime();
     fetchRealtime();
     rtTimer = setInterval(fetchRealtime, 3000);
   });
 
-  // start realtime
   fetchRealtime();
   rtTimer = setInterval(fetchRealtime, 3000);
 });
 </script>
-
 </body>
 </html>
